@@ -7,6 +7,10 @@
 - DO NOT PUSH CONTENTS OF BUILD/ INTO REPOSITORY!!
 
 # This program is intended to be only ran on a Windows machine
+
+# Python packages to downloand
+pyqt5
+
  
 # Things needed to run system
 
