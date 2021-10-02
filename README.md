@@ -17,7 +17,7 @@ Download gcc, make, g++
 # Cmake - Download 
 https://cmake.org/download/
 Download cmake-3.21.3-windows-x86_64.msi
-Add CMake to system user PATH manually
+Add CMake\bin to system user PATH manually
 Check that it is downloaded in the git bash terminal by
 cmake --version
 

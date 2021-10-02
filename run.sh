@@ -15,7 +15,7 @@ run()
     # Run executable
 
     # Move into proper directory and run the executable
-    $(pwd)/build/*.exe "hello world bb"
+    "$(pwd)"/build/*.exe "hello world bb"
 }
 
 build()
