@@ -10,6 +10,7 @@
 
 # Python packages to downloand
 pyqt5
+pyqt5-tools
 
  
 # Things needed to run system
