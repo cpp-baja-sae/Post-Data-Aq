@@ -2,6 +2,7 @@ import sqlite3
 from sqlite3 import Error
 
 def create_connection(path):
+    print("Hello world")
     connection = None
     try:
         connection = sqlite3.connect(path)
