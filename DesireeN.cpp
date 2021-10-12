@@ -1,14 +1,8 @@
+#include <iostream>
 #include "DesireeN.h"
-void wut_up() {
-  // do stuff;
-}
+using namespace std;
+int main()
+{
+cout<<"Hello Jovel.";
 
-int main() {
-
-  wut_up();
-  return 0;
-}
-
-void wut_up() {
-  // do stuff;
 }
