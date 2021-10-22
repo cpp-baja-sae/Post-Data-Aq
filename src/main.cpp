@@ -3,6 +3,11 @@
 #include <iostream>
 
 int main(int argc, char **argv) {
-  doing_something();
-  return 0;
+
+    for (int five = 5; five >= 0; five--) {
+        for (int i = 0; i < argc; i++) {
+            std::cout << argv[i] << "\n";
+        }
+    }
+    return 0;
 }
