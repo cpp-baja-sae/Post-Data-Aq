@@ -10,8 +10,8 @@ int hammingcode(string input) {
   int redundant_bits = 0;
   int parity; // m = no. of data bits, r = no. of redundant bits
 
-  // cout<<"Enter the size of data bits: ";
-  // cin>>m;
+  cout<<"Enter the size of data bits: ";
+  cin>>data_size;
   data_size = 128000;
 
   // finding no. of redundant bits
@@ -20,10 +20,10 @@ int hammingcode(string input) {
     redundant_bits++;
   }
 
-  // cout<<"Enter the data bit: ";
-  for (int i = 1; i <= data_size; i++)
-    // cin>>data_bits[i];
-    data_bits[i] = 1;
+   cout<<"Enter the data bit: ";
+  for (int i = 1; i <= data_size; i++){
+     cin>>data_bits[i];
+    data_bits[i] = 1;}
 
   int hamming[data_size + redundant_bits];
   int redun_exponent = 0;
@@ -41,24 +41,26 @@ int hammingcode(string input) {
     }
   }
 
-  redun_exponent = 0;
+  int redundant_bit_position = 0;
   int x = 0;
   int min = 0;
   int max = 0;
+  int j ;
+  //int parity;
   // finding parity bit
-  for (int i = 1; i <= data_size + redundant_bits; i = pow(2, redun_exponent)) {
-    redun_exponent++;
+  for (int i = 1; i <= data_size + redundant_bits; i = pow(2, redundant_bit_position)) {
+    redundant_bit_position++;
     parity = 0;
     j = i;
     x = i;
     min = 1;
     max = i;
     while (j <= data_size + redundant_bits) {
-      for (x = j; max >= min && x <= data_size + redundant_bits; min++, x++) {
+      for (x = i; max >= min && x <= data_size + redundant_bits; min++, x++) {
         if (hamming[x] == 1)
           parity = parity + 1;
         ;
-        // cout << x << "\n";
+         cout << x << "\n";
       }
       // cout << x << "\n";
       j = x + i;
@@ -73,10 +75,10 @@ int hammingcode(string input) {
     }
   }
 
-  // cout<<"\nHamming code is: ";
-  // for(int i = 1; i <= m + r; i++)
-  // cout<<hamming[i]<<" ";
-  // cout <<"\n"<<input<< "\n";
+  cout<<"\nHamming code is: ";
+  for(int i = 1; i <= data_size + redundant_bits ; i++){
+   cout<<hamming[i]<<" ";
+   cout <<"\n"<<input<< "\n";}
 
   return 8383;
 }
