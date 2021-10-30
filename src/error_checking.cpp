@@ -78,7 +78,7 @@ int hammingcode(string input) {
   cout<<"\nHamming code is: ";
   for(int i = 1; i <= data_size + redundant_bits ; i++){
    cout<<hamming[i]<<" ";
-   cout <<"\n"<<input<< "\n";}
+   cout <<"\n"<< index_input<< "\n";}
 
   return 8383;
 }
