@@ -44,8 +44,8 @@ int hammingcode(string input) {
 
   int redundant_bit_position = 0;
   int x = 0;
-  int min = 0;
-  int max = 0;
+  int xor_min = 0;
+  int xor_max = 0;
   int j = 0;
   //int parity = 0
   // finding parity bit
@@ -64,7 +64,7 @@ int hammingcode(string input) {
       }
       //cout<<"\n" << j << "\n";
       j = x + i;
-      xor_min = 1;
+     xor_min = 1;
     }
 
     // checking for even parity
@@ -80,5 +80,13 @@ int hammingcode(string input) {
    cout<<hamming[i]<<" ";
    }
 
+
+for (int i = 1; i <= data_size + redundant_bits; i++) {
+  int t= pow(SQUARE_LAW, redun_exponent);
+    if (hamming[i] != hamming[t]) {
+      cout << hamming[i];
+      redun_exponent++;
+    }
+    }
   return 0;
 }
