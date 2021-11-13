@@ -79,15 +79,5 @@ int hammingcode(string input) {
   for(int i = 1; i <= data_size + redundant_bits ; i++){
    cout<<hamming[i]<<" ";
    }
-
-
-for (int i = 1; i <= data_size + redundant_bits; i++) {
-  for( int t= pow(SQUARE_LAW, redun_exponent); t <= data_size + redundant_bits; redun_exponent++) {
-    if (hamming[i] != hamming[t]) {
-      cout << hamming[i];
-      redun_exponent++;
-    }
-    }
-    }
   return 0;
 }
