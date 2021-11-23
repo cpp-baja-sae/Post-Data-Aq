@@ -5,7 +5,7 @@
 
 using namespace std;
 int hammingcode(string input) {
-  int data_bits[128000];
+  int data_bits[16];
   int data_size;
   int redundant_bits = 0;
   int parity; 
@@ -79,5 +79,45 @@ int hammingcode(string input) {
   for(int i = 1; i <= data_size + redundant_bits ; i++){
    cout<<hamming[i]<<" ";
    }
+   // NEWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+
+
+// storing redundant bits of hamming[i] into redundant_bits_array[i]
+  int redundant_bits_array[16];
+  int redun_exponent_2 = 0;
+  int e = 1;
+
+  for (int i = 1; i <= data_size + redundant_bits; i++) {
+
+   if (i == pow(SQUARE_LAW, redun_exponent_2)) {
+      redundant_bits_array[e] = hamming[i];
+      e = e + 1;
+      redun_exponent_2++;
+  }
+  }
+  cout<<"\nredundant bits is: ";
+  for(int i = 1; i <= redun_exponent_2; i++){
+   cout<<redundant_bits_array[i]<<" ";
+  }
+
+
+//storing data bits of hamming[i] into data_bit_array[i]
+  int data_bits_array[16];
+  int redun_exponent_3 = 0;
+  int w = 1;
+
+for (int i = 1; i <= data_size + redundant_bits; i++) {
+
+   if (i != pow(SQUARE_LAW, redun_exponent_3)) {
+      data_bits_array[w] = hamming[i];
+      w = w + 1;
+      redun_exponent_3++;
+  }
+  }
+  cout<<"\ndata bits is: ";
+  for(int i = 2; i <= redun_exponent_3; i++){
+   cout<<data_bits_array[i]<<" ";
+  }
+
   return 0;
 }
