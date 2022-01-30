@@ -6,35 +6,35 @@ use data_format::{Axis, DataFileDescriptor, DataType};
 pub fn example_file_descriptor() -> DataFileDescriptor {
     use DataType::*;
     let switch_descriptor =
-        PackedSwitch([None, None, None, None, Some(()), None, Some(()), Some(())]);
+        PackedSwitch([None, None, None, None, Some(0), None, Some(1), Some(2)]);
     DataFileDescriptor::new(
         1e4,
         vec![
             vec![
                 switch_descriptor.clone(),
                 MuxCheck(0),
-                StrainGauge,
+                StrainGauge(0),
                 Padding,
                 Padding,
             ],
             vec![
                 switch_descriptor.clone(),
                 MuxCheck(1),
-                StrainGauge,
+                StrainGauge(1),
                 Padding,
                 Padding,
             ],
             vec![
                 switch_descriptor.clone(),
                 MuxCheck(2),
-                StrainGauge,
+                StrainGauge(2),
                 Padding,
                 Padding,
             ],
             vec![
                 switch_descriptor.clone(),
                 MuxCheck(3),
-                StrainGauge,
+                StrainGauge(3),
                 Padding,
                 Padding,
             ],

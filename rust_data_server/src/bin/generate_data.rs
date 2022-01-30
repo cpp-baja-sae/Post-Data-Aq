@@ -13,7 +13,7 @@ fn generate_datum(typ: &DataType, append_to: &mut impl Write) {
         DataType::Gps(..) => write(&f32::to_le_bytes(rng.gen_range(-1.0..1.0))),
         DataType::MuxCheck(data) => write(&[*data]),
         DataType::Padding => write(&[0]),
-        DataType::StrainGauge => write(&f32::to_le_bytes(rng.gen_range(0.0..1.0))),
+        DataType::StrainGauge(..) => write(&f32::to_le_bytes(rng.gen_range(0.0..1.0))),
         DataType::PackedSwitch(bits) => {
             let mut byte = 0;
             for bit_index in 0..8 {
@@ -23,7 +23,7 @@ fn generate_datum(typ: &DataType, append_to: &mut impl Write) {
             }
             write(&[byte])
         }
-        DataType::LoneSwitch => unreachable!("Lone switch is only used for unpacked data"),
+        DataType::LoneSwitch(..) => unreachable!("Lone switch is only used for unpacked data"),
     };
 }
 

@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use super::Axis;
 
+pub type Id = usize;
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum DataType {
     /// Indicates a f32 value for a particular axis of the accelerometer.
@@ -16,13 +18,13 @@ pub enum DataType {
     /// to make room for Hamming codes)
     Padding,
     /// Indicates a f32 value recorded from any strain gague.
-    StrainGauge,
+    StrainGauge(Id),
     /// Indicates a byte that only stores if a number of switches are open
     /// or closed. Each bit may optionally contain the value of
     /// another switch.
-    PackedSwitch([Option<()>; 8]),
+    PackedSwitch([Option<Id>; 8]),
     /// Indicates a f32 that only stores if a single switches is closed.
-    LoneSwitch,
+    LoneSwitch(Id),
 }
 
 impl DataType {
@@ -34,8 +36,7 @@ impl DataType {
             // Count up all bits that contain data for a particular switch.
             Self::PackedSwitch(bit_spec) => bit_spec
                 .iter()
-                .filter(|b| b.is_some())
-                .map(|_| Self::LoneSwitch)
+                .filter_map(|b| b.map(Self::LoneSwitch))
                 .collect(),
             // Data type is the same for packed and unpacked representations.
             _ => vec![self.clone()],
@@ -47,7 +48,7 @@ impl DataType {
     pub fn num_packed_bytes(&self) -> usize {
         match self {
             Self::MuxCheck(..) | Self::Padding | Self::PackedSwitch(..) => 1,
-            Self::LoneSwitch => unreachable!("Lone switch is only used for unpacked data"),
+            Self::LoneSwitch(..) => unreachable!("Lone switch is only used for unpacked data"),
             _ => 4,
         }
     }
@@ -74,7 +75,7 @@ impl DataType {
                 }
                 Ok(result)
             }
-            DataType::LoneSwitch => unreachable!("Lone switch is only used for unpacked data"),
+            DataType::LoneSwitch(..) => unreachable!("Lone switch is only used for unpacked data"),
             _ => Ok(vec![f32::from_le_bytes([
                 input[0], input[1], input[2], input[3],
             ])]),
