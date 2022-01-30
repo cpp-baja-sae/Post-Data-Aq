@@ -4,7 +4,7 @@ use super::Axis;
 
 pub type Id = usize;
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum DataType {
     /// Indicates a f32 value for a particular axis of the accelerometer.
     Accelerometer(Axis),
@@ -54,14 +54,17 @@ impl DataType {
     }
 
     /// Unpacks bytes into individual float values with labels.
-    pub fn unpack(&self, input: &[u8]) -> Result<Vec<f32>, ()> {
+    pub fn unpack(&self, input: &[u8]) -> Result<Vec<f32>, String> {
         debug_assert_eq!(input.len(), self.num_packed_bytes());
         let result = match self {
             &DataType::MuxCheck(expecting) => {
                 if input[0] == expecting {
                     Ok(vec![])
                 } else {
-                    Err(())
+                    Err(format!(
+                        "Mux check failed, expected {} got {}",
+                        expecting, input[0]
+                    ))
                 }
             }
             DataType::Padding => Ok(vec![]),

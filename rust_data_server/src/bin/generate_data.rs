@@ -1,4 +1,7 @@
-use std::{fs::File, io::prelude::*};
+use std::{
+    fs::{self, File},
+    io::prelude::*,
+};
 
 use rand::Rng;
 use rust_data_server::{data_format::DataType, hamming};
@@ -28,7 +31,8 @@ fn generate_datum(typ: &DataType, append_to: &mut impl Write) {
 }
 
 fn main() {
-    let mut file = File::create("data/data.bin").unwrap();
+    fs::create_dir_all("data/").unwrap();
+    let mut file = File::create("data/sample.bin").unwrap();
     let descriptor = rust_data_server::example_file_descriptor();
     for i in 0..1_000_000 {
         if i % 10_000 == 0 {

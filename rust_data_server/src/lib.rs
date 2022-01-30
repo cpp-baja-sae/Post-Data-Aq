@@ -1,13 +1,13 @@
 pub mod data_format;
 pub mod hamming;
 
-use data_format::{Axis, DataFileDescriptor, DataType};
+use data_format::{Axis, PackedFileDescriptor, DataType};
 
-pub fn example_file_descriptor() -> DataFileDescriptor {
+pub fn example_file_descriptor() -> PackedFileDescriptor {
     use DataType::*;
     let switch_descriptor =
         PackedSwitch([None, None, None, None, Some(0), None, Some(1), Some(2)]);
-    DataFileDescriptor::new(
+    PackedFileDescriptor::new(
         1e4,
         vec![
             vec![

@@ -34,12 +34,12 @@ pub fn check_hamming_code_compatibility(dfd: &DataFrameDescriptor) -> Result<(),
     }
 }
 
-pub struct DataFileDescriptor {
+pub struct PackedFileDescriptor {
     sample_rate: f32,
     frame_sequence: Vec<DataFrameDescriptor>,
 }
 
-impl DataFileDescriptor {
+impl PackedFileDescriptor {
     pub fn new(sample_rate: f32, frame_sequence: Vec<DataFrameDescriptor>) -> Self {
         for frame in &frame_sequence {
             debug_assert_eq!(check_hamming_code_compatibility(frame), Ok(()))
