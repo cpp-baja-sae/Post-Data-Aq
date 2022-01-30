@@ -1,7 +1,7 @@
 use std::{fs::File, io::prelude::*};
 
 use rand::Rng;
-use rust_data_server::data_format::DataType;
+use rust_data_server::{data_format::DataType, hamming};
 
 /// Generates a single piece of data with the appropriate type and appends it to
 /// the given file.
@@ -31,13 +31,18 @@ fn main() {
     let mut file = File::create("data/data.bin").unwrap();
     let descriptor = rust_data_server::example_file_descriptor();
     for i in 0..1_000_000 {
-        if i % 1_000 == 0 {
-            println!("{}", i);
+        if i % 10_000 == 0 {
+            println!("{} / {}", i / 10_000, 1_000_000 / 10_000);
         }
-        for frame in descriptor.frame_sequence() {
-            for typ in frame {
-                generate_datum(typ, &mut file)
+        let mut buffer = Vec::new();
+        for _ in 0..512 {
+            for frame in descriptor.frame_sequence() {
+                for typ in frame {
+                    generate_datum(typ, &mut buffer)
+                }
             }
         }
+        hamming::encode(&mut buffer[..]);
+        file.write_all(&buffer[..]).unwrap();
     }
 }

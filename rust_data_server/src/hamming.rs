@@ -4,7 +4,7 @@ type HammingCode = secded::SecDed64;
 
 /// Modifies a stream of bytes to include Hamming error correction codes. Every
 /// eighth byte must be zero.
-pub fn hamming_encode(input: &mut [u8]) {
+pub fn encode(input: &mut [u8]) {
     debug_assert_eq!(
         input.len() % 8,
         0,
@@ -17,7 +17,7 @@ pub fn hamming_encode(input: &mut [u8]) {
     hc.encode(input)
 }
 
-pub fn hamming_decode(input: &mut [u8]) -> Result<(), ()> {
+pub fn decode(input: &mut [u8]) -> Result<(), ()> {
     debug_assert_eq!(
         input.len() % 8,
         0,
