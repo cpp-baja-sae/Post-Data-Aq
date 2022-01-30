@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::Axis;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum DataType {
     /// Indicates a f32 value for a particular axis of the accelerometer.
     Accelerometer(Axis),
