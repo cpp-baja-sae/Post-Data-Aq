@@ -36,6 +36,7 @@ pub fn check_hamming_code_compatibility(dfd: &DataFrameDescriptor) -> Result<(),
     }
 }
 
+#[derive(Clone)]
 pub struct PackedFileDescriptor {
     /// The frequency that data frames are collected with.
     sample_rate: f32,

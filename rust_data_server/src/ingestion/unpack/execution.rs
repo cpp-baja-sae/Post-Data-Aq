@@ -4,15 +4,17 @@ use super::{
     setup,
     support_types::{Outputs, ReadStep},
 };
-use crate::{data_format::PackedFileDescriptor, hamming};
+use crate::{data_format::PackedFileDescriptor, hamming, util::ProgressTracker};
 
 pub fn unpack(
-    name: &String,
+    mut input: impl Read,
+    size: u64,
+    name: &str,
     descriptor: PackedFileDescriptor,
     mut progress_callback: impl FnMut(u64, u64),
 ) {
-    let (mut progress_tracker, mut input) = setup::load_input_file(&name);
-    let output_dir = setup::create_output_dir(&name);
+    let mut progress_tracker = ProgressTracker::new(size, 10_000_000);
+    let output_dir = setup::create_output_dir(name);
     let (mut outputs, sample_rate_multipliers) = setup::get_output_info(&descriptor, output_dir);
     // How long a single instance of the descriptor's frame sequence is, dictates
     // how much data we try to read at once.

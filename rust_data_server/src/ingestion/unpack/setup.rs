@@ -4,8 +4,11 @@ use std::{
     io::{BufReader, BufWriter},
 };
 
-use super::support_types::{Outputs, ProgressTracker, ReadSequence, ReadStep, SampleRateInfo};
-use crate::data_format::{DataType, PackedFileDescriptor};
+use super::support_types::{Outputs, ReadSequence, ReadStep, SampleRateInfo};
+use crate::{
+    data_format::{DataType, PackedFileDescriptor},
+    util::ProgressTracker,
+};
 
 pub(super) fn build_read_sequence<'a>(
     descriptor: &'a PackedFileDescriptor,
@@ -62,20 +65,16 @@ pub(super) fn get_output_info(
     (outputs, sample_rate_multipliers)
 }
 
-pub(super) fn create_output_dir(name: &String) -> String {
+pub(super) fn create_output_dir(name: &str) -> String {
     let output_dir = format!("cache/{}", name);
     fs::create_dir_all(&output_dir).unwrap();
     output_dir
 }
 
-pub(super) fn load_input_file(name: &String) -> (ProgressTracker, BufReader<File>) {
+pub(super) fn load_input_file(name: &str) -> (ProgressTracker, BufReader<File>) {
     let input = File::open(format!("data/{}.bin", name)).unwrap();
     let total_bytes = input.metadata().unwrap().len();
     let input = BufReader::new(input);
-    let progress = ProgressTracker {
-        total_bytes,
-        bytes_so_far: 0,
-        last_notification: 0,
-    };
+    let progress = ProgressTracker::new(total_bytes, 10_000_000);
     (progress, input)
 }
