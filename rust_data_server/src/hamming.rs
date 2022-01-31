@@ -11,7 +11,7 @@ pub fn encode(input: &mut [u8]) {
         "input size must be a multiple of 8 bytes."
     );
     let hc = HammingCode::new(57);
-    for chunk in input.chunks_mut(8) {
+    for chunk in input.chunks_exact_mut(8) {
         debug_assert_eq!(chunk[7], 0, "every eighth byte must be zero.");
         hc.encode(chunk)
     }
@@ -24,7 +24,7 @@ pub fn decode(input: &mut [u8]) -> Result<(), ()> {
         "input size must be a multiple of 8 bytes."
     );
     let hc = HammingCode::new(57);
-    for chunk in input.chunks_mut(8) {
+    for chunk in input.chunks_exact_mut(8) {
         hc.decode(chunk)?;
     }
     Ok(())

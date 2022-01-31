@@ -1,5 +1,6 @@
 pub mod data_format;
 pub mod hamming;
+pub mod ingestion;
 
 use data_format::{Axis, PackedFileDescriptor, DataType};
 

@@ -59,4 +59,15 @@ impl PackedFileDescriptor {
     pub fn frame_sequence(&self) -> &[DataFrameDescriptor] {
         &self.frame_sequence[..]
     }
+
+    /// Gets the size in bytes of this descriptor's frame sequence.
+    pub fn frame_sequence_size(&self) -> usize {
+        let mut frame_sequence_size = 0;
+        for frame in self.frame_sequence() {
+            for typ in frame {
+                frame_sequence_size += typ.num_packed_bytes();
+            }
+        }
+        frame_sequence_size
+    }
 }
