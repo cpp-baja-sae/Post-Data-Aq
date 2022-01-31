@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::DataType;
 
 pub type DataFrameDescriptor = Vec<DataType>;
@@ -35,6 +37,7 @@ pub fn check_hamming_code_compatibility(dfd: &DataFrameDescriptor) -> Result<(),
 }
 
 pub struct PackedFileDescriptor {
+    /// The frequency that data frames are collected with.
     sample_rate: f32,
     frame_sequence: Vec<DataFrameDescriptor>,
 }
@@ -70,4 +73,48 @@ impl PackedFileDescriptor {
         }
         frame_sequence_size
     }
+
+    /// Creates an UnpackedFileDescriptor which describes unpacked data sourced
+    /// from a file with this descriptor.
+    pub fn unpacked(&self) -> UnpackedFileDescriptor {
+        let mut sample_rate_multipliers = HashMap::<DataType, u8>::new();
+        for frame in self.frame_sequence() {
+            for typ in frame {
+                for typ in typ.unpacked_types() {
+                    if sample_rate_multipliers.contains_key(&typ) {
+                        *sample_rate_multipliers.get_mut(&typ).unwrap() += 1;
+                    } else {
+                        sample_rate_multipliers.insert(typ, 1);
+                    }
+                }
+            }
+        }
+
+        let base_sample_rate = self.sample_rate / self.frame_sequence.len() as f32;
+        let channels = sample_rate_multipliers
+            .into_iter()
+            .map(|(typ, sample_rate_multiplier)| UnpackedChannelDescriptor {
+                typ,
+                sample_rate_multiplier,
+            })
+            .collect();
+
+        UnpackedFileDescriptor {
+            sample_rate: base_sample_rate,
+            channels,
+        }
+    }
+}
+
+pub struct UnpackedFileDescriptor {
+    /// A base frequency that can be multiplied by
+    /// `channels[n].sample_rate_multiplier` to get the sample rate for
+    /// individual channels.
+    pub sample_rate: f32,
+    pub channels: Vec<UnpackedChannelDescriptor>,
+}
+
+pub struct UnpackedChannelDescriptor {
+    pub sample_rate_multiplier: u8,
+    pub typ: DataType,
 }
