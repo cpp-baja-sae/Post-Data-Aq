@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use serde::{Serialize, Deserialize};
+
 use super::DataType;
 
 pub type DataFrameDescriptor = Vec<DataType>;
@@ -107,6 +109,7 @@ impl PackedFileDescriptor {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct UnpackedFileDescriptor {
     /// A base frequency that can be multiplied by
     /// `channels[n].sample_rate_multiplier` to get the sample rate for
@@ -115,6 +118,7 @@ pub struct UnpackedFileDescriptor {
     pub channels: Vec<UnpackedChannelDescriptor>,
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct UnpackedChannelDescriptor {
     pub sample_rate_multiplier: u8,
     pub typ: DataType,

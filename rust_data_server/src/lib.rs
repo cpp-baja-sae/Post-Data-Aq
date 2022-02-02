@@ -3,6 +3,7 @@ pub mod hamming;
 pub mod ingestion;
 pub mod interface;
 pub mod util;
+pub mod read;
 
 use data_format::{Axis, DataType, PackedFileDescriptor};
 
