@@ -3,6 +3,8 @@ use std::{
     io::{BufReader, Read, Seek, SeekFrom},
 };
 
+use serde::{Deserialize, Serialize};
+
 use crate::data_format::{UnpackedChannelDescriptor, UnpackedFileDescriptor};
 
 pub fn list_datasets() -> Vec<String> {
@@ -19,13 +21,25 @@ pub fn dataset_descriptor(name: &str) -> Option<UnpackedFileDescriptor> {
     Some(serde_json::from_reader(file).unwrap())
 }
 
-pub fn read_samples(
-    name: &str,
+#[derive(Serialize, Deserialize)]
+pub struct ReadSamplesParams {
+    name: String,
     channel: UnpackedChannelDescriptor,
     rate_modifier: u8,
-    filter: &str,
+    filter: String,
     start: u64,
     end: u64,
+}
+
+pub fn read_samples(
+    ReadSamplesParams {
+        name,
+        channel,
+        rate_modifier,
+        filter,
+        start,
+        end,
+    }: ReadSamplesParams,
 ) -> Result<Vec<f32>, String> {
     let file_path = format!("cache/{}/{:?}-rate-{}", name, channel, rate_modifier);
     if filter != "min" && filter != "max" && filter != "avg" {
