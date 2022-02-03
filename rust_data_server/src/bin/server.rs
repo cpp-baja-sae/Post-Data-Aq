@@ -8,13 +8,7 @@ use websocket::{
 };
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Request {
-    id: u32,
-    payload: RequestPayload,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub enum RequestPayload {
+pub enum Request {
     ListDatasets,
     DatasetDescriptor(String),
     ReadSamples(ReadSamplesParams),
@@ -22,7 +16,7 @@ pub enum RequestPayload {
 
 #[derive(Serialize, Deserialize)]
 pub struct Response {
-    id: u32,
+    r#final: bool,
     payload: ResponsePayload,
 }
 
@@ -43,19 +37,21 @@ fn as_data(message: OwnedMessage) -> Option<String> {
 }
 
 fn handle_request(request: Request, sender: &mut Writer<TcpStream>) {
-    let id = request.id;
-    let payload = match request.payload {
-        RequestPayload::ListDatasets => ResponsePayload::ListDatasets(interface::list_datasets()),
-        RequestPayload::DatasetDescriptor(name) => match interface::dataset_descriptor(&name) {
+    let payload = match request {
+        Request::ListDatasets => ResponsePayload::ListDatasets(interface::list_datasets()),
+        Request::DatasetDescriptor(name) => match interface::dataset_descriptor(&name) {
             Some(descriptor) => ResponsePayload::DatasetDescriptor(descriptor),
             None => ResponsePayload::Error(format!("'{}' is not a valid dataset", name)),
         },
-        RequestPayload::ReadSamples(params) => match interface::read_samples(params) {
+        Request::ReadSamples(params) => match interface::read_samples(params) {
             Ok(data) => ResponsePayload::ReadSamples(data),
             Err(err) => ResponsePayload::Error(err),
         },
     };
-    let response = Response { id, payload };
+    let response = Response {
+        r#final: true,
+        payload,
+    };
     let data = serde_json::to_string(&response).unwrap();
     sender.send_message(&Message::text(data)).unwrap();
 }
@@ -72,7 +68,7 @@ fn handle_client(connection: Client<TcpStream>) {
         println!("{:?}", request);
         if let Err(err) = request {
             let response = Response {
-                id: u32::MAX,
+                r#final: true,
                 payload: ResponsePayload::Error(err.to_string()),
             };
             let data = serde_json::to_string(&response).unwrap();
@@ -87,9 +83,7 @@ fn handle_client(connection: Client<TcpStream>) {
 pub fn main() {
     let server = Server::bind("localhost:6583").unwrap();
     println!("Server running on localhost:6583");
-    for connection in server.filter_map(
-        Result::ok
-    ) {
+    for connection in server.filter_map(Result::ok) {
         println!("New connection from {:?}", connection.origin());
         let client = connection.accept().unwrap();
         thread::spawn(|| handle_client(client));
