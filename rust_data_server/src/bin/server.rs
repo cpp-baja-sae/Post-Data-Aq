@@ -7,13 +7,13 @@ use websocket::{
     Message, OwnedMessage,
 };
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Request {
     id: u32,
     payload: RequestPayload,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum RequestPayload {
     ListDatasets,
     DatasetDescriptor(String),
@@ -61,6 +61,7 @@ fn handle_request(request: Request, sender: &mut Writer<TcpStream>) {
 }
 
 fn handle_client(connection: Client<TcpStream>) {
+    let addr = connection.peer_addr().unwrap();
     let (mut receiver, mut sender) = connection.split().unwrap();
     for request in receiver
         .incoming_messages()
@@ -68,6 +69,7 @@ fn handle_client(connection: Client<TcpStream>) {
         .filter_map(as_data)
     {
         let request = serde_json::from_str(&request);
+        println!("{:?}", request);
         if let Err(err) = request {
             let response = Response {
                 id: u32::MAX,
@@ -79,11 +81,16 @@ fn handle_client(connection: Client<TcpStream>) {
             handle_request(request.unwrap(), &mut sender);
         }
     }
+    println!("Connection from {} closed.", addr);
 }
 
 pub fn main() {
     let server = Server::bind("localhost:6583").unwrap();
-    for connection in server.filter_map(Result::ok) {
+    println!("Server running on localhost:6583");
+    for connection in server.filter_map(
+        Result::ok
+    ) {
+        println!("New connection from {:?}", connection.origin());
         let client = connection.accept().unwrap();
         thread::spawn(|| handle_client(client));
     }

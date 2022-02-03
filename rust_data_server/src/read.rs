@@ -21,7 +21,7 @@ pub fn dataset_descriptor(name: &str) -> Option<UnpackedFileDescriptor> {
     Some(serde_json::from_reader(file).unwrap())
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ReadSamplesParams {
     name: String,
     channel: UnpackedChannelDescriptor,
