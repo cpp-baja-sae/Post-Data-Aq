@@ -41,7 +41,7 @@ pub fn read_samples(
         end,
     }: ReadSamplesParams,
 ) -> Result<Vec<f32>, String> {
-    let file_path = format!("cache/{}/{:?}-rate-{}", name, channel, rate_modifier);
+    let file_path = format!("cache/{}/{:?}-rate-{}", name, channel.typ, rate_modifier);
     if filter != "min" && filter != "max" && filter != "avg" {
         return Err(format!(
             "Expected filter to be min, max, or avg, got {} instead",
