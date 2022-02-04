@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use super::DataType;
 
@@ -40,19 +40,17 @@ pub fn check_hamming_code_compatibility(dfd: &DataFrameDescriptor) -> Result<(),
 
 #[derive(Clone)]
 pub struct PackedFileDescriptor {
-    /// The frequency that data frames are collected with.
+    /// The frequency that the data sequence repeats at.
     sample_rate: f32,
-    frame_sequence: Vec<DataFrameDescriptor>,
+    data_sequence: Vec<DataType>,
 }
 
 impl PackedFileDescriptor {
-    pub fn new(sample_rate: f32, frame_sequence: Vec<DataFrameDescriptor>) -> Self {
-        for frame in &frame_sequence {
-            debug_assert_eq!(check_hamming_code_compatibility(frame), Ok(()))
-        }
+    pub fn new(sample_rate: f32, data_sequence: Vec<DataType>) -> Self {
+        debug_assert_eq!(check_hamming_code_compatibility(&data_sequence), Ok(()));
         Self {
             sample_rate,
-            frame_sequence,
+            data_sequence,
         }
     }
 
@@ -62,17 +60,15 @@ impl PackedFileDescriptor {
     }
 
     /// Get a reference to the data file descriptor's frame sequence.
-    pub fn frame_sequence(&self) -> &[DataFrameDescriptor] {
-        &self.frame_sequence[..]
+    pub fn data_sequence(&self) -> &[DataType] {
+        &self.data_sequence[..]
     }
 
     /// Gets the size in bytes of this descriptor's frame sequence.
-    pub fn frame_sequence_size(&self) -> usize {
+    pub fn data_sequence_size(&self) -> usize {
         let mut frame_sequence_size = 0;
-        for frame in self.frame_sequence() {
-            for typ in frame {
-                frame_sequence_size += typ.num_packed_bytes();
-            }
+        for typ in self.data_sequence() {
+            frame_sequence_size += typ.num_packed_bytes();
         }
         frame_sequence_size
     }
@@ -81,19 +77,17 @@ impl PackedFileDescriptor {
     /// from a file with this descriptor.
     pub fn unpacked(&self) -> UnpackedFileDescriptor {
         let mut sample_rate_multipliers = HashMap::<DataType, u8>::new();
-        for frame in self.frame_sequence() {
-            for typ in frame {
-                for typ in typ.unpacked_types() {
-                    if sample_rate_multipliers.contains_key(&typ) {
-                        *sample_rate_multipliers.get_mut(&typ).unwrap() += 1;
-                    } else {
-                        sample_rate_multipliers.insert(typ, 1);
-                    }
+        for typ in self.data_sequence() {
+            for typ in typ.unpacked_types() {
+                if sample_rate_multipliers.contains_key(&typ) {
+                    *sample_rate_multipliers.get_mut(&typ).unwrap() += 1;
+                } else {
+                    sample_rate_multipliers.insert(typ, 1);
                 }
             }
         }
 
-        let base_sample_rate = self.sample_rate / self.frame_sequence.len() as f32;
+        let base_sample_rate = self.sample_rate / self.data_sequence.len() as f32;
         let channels = sample_rate_multipliers
             .into_iter()
             .map(|(typ, sample_rate_multiplier)| UnpackedChannelDescriptor {

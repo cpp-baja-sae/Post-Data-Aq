@@ -15,14 +15,12 @@ pub(super) fn build_read_sequence<'a>(
     outputs: &Outputs,
 ) -> ReadSequence<'a> {
     let mut read_sequence = Vec::new();
-    for frame in descriptor.frame_sequence() {
-        for typ in frame {
-            read_sequence.push(ReadStep {
-                num_bytes: typ.num_packed_bytes(),
-                unpacker: typ,
-                destinations: find_outputs(outputs, typ),
-            });
-        }
+    for typ in descriptor.data_sequence() {
+        read_sequence.push(ReadStep {
+            num_bytes: typ.num_packed_bytes(),
+            unpacker: typ,
+            destinations: find_outputs(outputs, typ),
+        });
     }
     read_sequence
 }
@@ -47,17 +45,15 @@ pub(super) fn get_output_info(
 ) -> (Outputs, SampleRateInfo) {
     let mut outputs = HashMap::<DataType, BufWriter<File>>::new();
     let mut sample_rate_multipliers = HashMap::<DataType, u8>::new();
-    for frame in descriptor.frame_sequence() {
-        for typ in frame {
-            for typ in typ.unpacked_types() {
-                if outputs.contains_key(&typ) {
-                    *sample_rate_multipliers.get_mut(&typ).unwrap() += 1;
-                } else {
-                    let filename = format!("{}/{:?}-rate-0.bin", &output_dir, typ);
-                    let writer = BufWriter::new(File::create(filename).unwrap());
-                    outputs.insert(typ.clone(), writer);
-                    sample_rate_multipliers.insert(typ, 1);
-                }
+    for typ in descriptor.data_sequence() {
+        for typ in typ.unpacked_types() {
+            if outputs.contains_key(&typ) {
+                *sample_rate_multipliers.get_mut(&typ).unwrap() += 1;
+            } else {
+                let filename = format!("{}/{:?}-rate-0.bin", &output_dir, typ);
+                let writer = BufWriter::new(File::create(filename).unwrap());
+                outputs.insert(typ.clone(), writer);
+                sample_rate_multipliers.insert(typ, 1);
             }
         }
     }

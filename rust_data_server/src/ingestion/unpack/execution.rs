@@ -18,7 +18,7 @@ pub fn unpack(
     let (mut outputs, sample_rate_multipliers) = setup::get_output_info(&descriptor, output_dir);
     // How long a single instance of the descriptor's frame sequence is, dictates
     // how much data we try to read at once.
-    let frame_sequence_size = descriptor.frame_sequence_size();
+    let frame_sequence_size = descriptor.data_sequence_size();
 
     // This defines a series of operations to perform repeatedly to read from the
     // file. It specifies how many bytes to read at a time, what to use to decode

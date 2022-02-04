@@ -34,16 +34,14 @@ fn main() {
     fs::create_dir_all("data/").unwrap();
     let mut file = File::create("data/sample.bin").unwrap();
     let descriptor = rust_data_server::example_file_descriptor();
-    for i in 0..1_000_000 {
+    for i in 0..100_000 {
         if i % 10_000 == 0 {
-            println!("{} / {}", i / 10_000, 1_000_000 / 10_000);
+            println!("{} / {}", i / 10_000, 100_000 / 10_000);
         }
         let mut buffer = Vec::new();
         for _ in 0..512 {
-            for frame in descriptor.frame_sequence() {
-                for typ in frame {
-                    generate_datum(typ, &mut buffer)
-                }
+            for typ in descriptor.data_sequence() {
+                generate_datum(typ, &mut buffer)
             }
         }
         hamming::encode(&mut buffer[..]);
