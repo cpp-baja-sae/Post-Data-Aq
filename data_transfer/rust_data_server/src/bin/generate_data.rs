@@ -35,8 +35,8 @@ fn main() {
     let mut file = File::create("data/sample.bin").unwrap();
     let descriptor = rust_data_server::example_file_descriptor();
     for i in 0..100_000 {
-        if i % 10_000 == 0 {
-            println!("{} / {}", i / 10_000, 100_000 / 10_000);
+        if i % 1_000 == 0 {
+            println!("{} / {}", i / 1_000, 100_000 / 1_000);
         }
         let mut buffer = Vec::new();
         for _ in 0..512 {
