@@ -8,14 +8,13 @@ pub type Id = usize;
 pub enum DataType {
     /// Indicates a f32 value for a particular axis of the accelerometer.
     Accelerometer(Axis),
-    /// Indicates a f32 value for a particular axis of the GPS.
-    Gps(Axis),
+    /// Indicates packed GPS data
+    Gps,
     /// Indicates that a specific byte is expected to indicate the selection
     /// of certain muxes. An error is thrown if this byte is not
     /// exactly found.
     MuxCheck(u8),
-    /// Indicates a byte that does not store any information (primarily used
-    /// to make room for Hamming codes)
+    /// Indicates a byte that does not store any information.
     Padding,
     /// Indicates a f32 value recorded from any strain gague.
     StrainGauge(Id),

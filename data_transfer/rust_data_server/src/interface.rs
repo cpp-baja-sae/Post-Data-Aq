@@ -29,7 +29,6 @@ pub fn ingest(
     input: impl Read + Send + 'static,
     size: u64,
     name: String,
-    descriptor: PackedFileDescriptor,
 ) -> Receiver<StatusMessage> {
     let (sender, receiver) = mpsc::channel();
     thread::spawn(move || {
@@ -44,7 +43,7 @@ pub fn ingest(
                 })
                 .ignore()
         };
-        ingestion::ingest(input, size, &name, &descriptor, status_sender);
+        ingestion::ingest(input, size, &name, status_sender);
         sender
             .send(StatusMessage::IngestionComplete { name: name.clone() })
             .ignore();
