@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Range};
 
 use serde::{Deserialize, Serialize};
 
@@ -19,31 +19,44 @@ impl PackedDataFrameDescriptor {
     }
 }
 
-#[derive(Clone)]
-pub struct PackedFileDescriptor {
-    pub data_frames: HashMap<u8, PackedDataFrameDescriptor>,
+pub struct PackedChannelDescriptor {
+    pub sample_rate: f32,
 }
 
-impl PackedFileDescriptor {
-    pub fn new(data_frames: HashMap<u8, PackedDataFrameDescriptor>) -> Self {
-        Self { data_frames }
+#[derive(Clone)]
+pub struct FileDescriptor {
+    /// Which (packed) channels each data frame contains. I.E.
+    /// `packed_channel_assignments[data_frame_id]` tells you a range to use on
+    /// `packed_channels`
+    pub packed_channel_assignments: Vec<Range<usize>>,
+    pub packed_channels: Vec<DataType>,
+    /// Like `packed_channel_assignments`, but provides ranges to be used on
+    pub unpacked_channel_assignments: Vec<Range<usize>>,
+    pub unpacked_channels: Vec<UnpackedChannelDescriptor>,
+}
+
+impl FileDescriptor {
+    pub fn new(data_frames: Vec<PackedDataFrameDescriptor>) -> Self {
+        let mut packed_channel_counter = 0;
+        let mut unpacked_channel_counter = 0;
+        let mut packed_channel_assignments = Vec::new();
+        let mut packed_channels = Vec::new();
+        let mut unpacked_channel_assignments = Vec::new();
+        let mut unpacked_channels = Vec::new();
+        Self {
+            packed_channel_assignments,
+            packed_channels,
+            unpacked_channel_assignments,
+            unpacked_channels,
+        }
     }
 
     /// Creates an UnpackedFileDescriptor which describes unpacked data sourced
     /// from a file with this descriptor.
     pub fn unpacked(&self) -> UnpackedFileDescriptor {
-        let mut channels = Vec::new();
-        for (_id, frame) in &self.data_frames {
-            for (typ, name) in &frame.data_sequence {
-                channels.push(UnpackedChannelDescriptor {
-                    name: name.clone(),
-                    typ: *typ,
-                    sample_rate: frame.sample_rate,
-                })
-            }
+        UnpackedFileDescriptor {
+            channels: self.unpacked_channels.clone(),
         }
-
-        UnpackedFileDescriptor { channels }
     }
 }
 

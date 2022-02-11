@@ -5,7 +5,7 @@ pub mod interface;
 pub mod read;
 pub mod util;
 
-use data_format::{Axis, DataType, PackedFileDescriptor};
+use data_format::{Axis, DataType, FileDescriptor};
 
 pub fn example_file_descriptor() -> &'static str {
     concat!(

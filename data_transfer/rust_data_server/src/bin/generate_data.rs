@@ -13,7 +13,7 @@ fn generate_datum(typ: &DataType, append_to: &mut impl Write) {
     let mut write = |data| append_to.write_all(data).unwrap();
     match typ {
         DataType::Accelerometer(..) => write(&f32::to_le_bytes(rng.gen_range(-5.0..5.0))),
-        DataType::Gps(..) => write(&f32::to_le_bytes(rng.gen_range(-1.0..1.0))),
+        DataType::Gps => todo!(),
         DataType::MuxCheck(data) => write(&[*data]),
         DataType::Padding => write(&[0]),
         DataType::StrainGauge(..) => write(&f32::to_le_bytes(rng.gen_range(0.0..1.0))),
@@ -40,9 +40,7 @@ fn main() {
         }
         let mut buffer = Vec::new();
         for _ in 0..512 {
-            for typ in descriptor.data_sequence() {
-                generate_datum(typ, &mut buffer)
-            }
+            todo!()
         }
         hamming::encode(&mut buffer[..]);
         file.write_all(&buffer[..]).unwrap();

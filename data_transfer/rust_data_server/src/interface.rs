@@ -7,8 +7,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    data_format::PackedFileDescriptor,
-    ingestion::{self, Phase},
+    ingestion::{self},
     util::Ignorable,
 };
 
@@ -16,7 +15,6 @@ use crate::{
 pub enum StatusMessage {
     IngestionProgress {
         name: String,
-        phase: Phase,
         completed: u64,
         total: u64,
     },
@@ -33,12 +31,11 @@ pub fn ingest(
     let (sender, receiver) = mpsc::channel();
     thread::spawn(move || {
         let input = input;
-        let status_sender = |phase, completed, total| {
+        let status_sender = |completed, total| {
             sender
                 .send(StatusMessage::IngestionProgress {
                     name: name.clone(),
                     completed,
-                    phase,
                     total,
                 })
                 .ignore()

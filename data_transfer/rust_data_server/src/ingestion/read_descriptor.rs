@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io::Read};
+use std::{collections::HashMap, io::Read, thread::current};
 
 use nom::{
     branch::alt,
@@ -8,7 +8,7 @@ use nom::{
     IResult, Parser,
 };
 
-use crate::data_format::{Axis, DataType, PackedDataFrameDescriptor, PackedFileDescriptor};
+use crate::data_format::{Axis, DataType, FileDescriptor, PackedDataFrameDescriptor};
 
 type ParseResult<'a, O> = IResult<&'a str, O>;
 
@@ -99,37 +99,36 @@ fn parse_item(i: &str) -> ParseResult<(DataType, &str)> {
     Ok((i, (item, label)))
 }
 
-fn parse_descriptor(i: &str) -> ParseResult<PackedFileDescriptor> {
+fn parse_descriptor(i: &str) -> ParseResult<FileDescriptor> {
     let (i, _) = parse_semicolon(i)?;
-    let mut data_frames = HashMap::new();
-    let mut current_data_frame = 0u8;
+    let mut data_frames = Vec::new();
+    let mut current_data_frame = None;
     let mut i = i;
     while i.len() > 0 {
         if let Ok((new_i, (label, sample_rate))) = parse_label(i) {
             i = new_i;
-            current_data_frame = label;
-            data_frames.insert(
-                current_data_frame,
-                PackedDataFrameDescriptor {
-                    sample_rate: sample_rate as f32,
-                    data_sequence: Vec::new(),
-                },
-            );
+            let expected_label = current_data_frame.map(|x| x + 1).unwrap_or(0);
+            assert_eq!(expected_label, label, "Unexpected jump in data frame label");
+            current_data_frame = Some(label);
+            data_frames.push(PackedDataFrameDescriptor {
+                sample_rate: sample_rate as f32,
+                data_sequence: Vec::new(),
+            });
         } else if let Ok((new_i, item)) = parse_item(i) {
             data_frames
-                .get_mut(&current_data_frame)
-                .unwrap()
+                .last_mut()
+                .expect("Unexpected item before any label")
                 .data_sequence
                 .push((item.0, item.1.to_owned()));
         } else {
             return fail(i);
         }
     }
-    let descriptor = PackedFileDescriptor::new(data_frames);
+    let descriptor = FileDescriptor::new(data_frames);
     Ok((i, descriptor))
 }
 
-pub fn read_descriptor(from: &mut impl Read) -> PackedFileDescriptor {
+pub fn read_descriptor(from: &mut impl Read) -> FileDescriptor {
     let mut size = [0; 4];
     from.read_exact(&mut size)
         .expect("Header size missing in file");
