@@ -4,6 +4,7 @@ use std::{
     io::{self, ErrorKind, Read},
 };
 
+use super::generate_mips::{self, RootDataConsumer};
 use crate::{
     data_format::{DataType, FileDescriptor, UnpackedChannelDescriptor, UnpackedFileDescriptor},
     hamming,
@@ -18,6 +19,8 @@ pub struct DataFrameReader<'a, ProgressCallback: FnMut(u64, u64), Consumer: Data
     pre_hamming_decode_buffer: VecDeque<u8>,
     post_hamming_decode_buffer: Vec<u8>,
     size: u64,
+    progress: u64,
+    last_notification: u64,
     name: &'a str,
     descriptor: &'a FileDescriptor,
     progress_callback: ProgressCallback,
@@ -28,6 +31,21 @@ enum ReadFrameError {
     CorruptData(String),
     NotEnoughData,
     Io(io::Error),
+}
+
+pub fn new_file_backed<'a, ProgressCallback: FnMut(u64, u64)>(
+    size: u64,
+    name: &'a str,
+    descriptor: &'a FileDescriptor,
+    progress_callback: ProgressCallback,
+) -> DataFrameReader<'a, ProgressCallback, impl DataConsumer> {
+    DataFrameReader::new(
+        size,
+        name,
+        descriptor,
+        progress_callback,
+        generate_mips::data_consumers_for(name, descriptor),
+    )
 }
 
 impl<'a, ProgressCallback: FnMut(u64, u64), Consumer: DataConsumer>
@@ -49,6 +67,8 @@ impl<'a, ProgressCallback: FnMut(u64, u64), Consumer: DataConsumer>
             pre_hamming_decode_buffer: VecDeque::new(),
             post_hamming_decode_buffer: Vec::new(),
             size,
+            progress: 0,
+            last_notification: 0,
             name,
             descriptor,
             progress_callback,
@@ -57,7 +77,14 @@ impl<'a, ProgressCallback: FnMut(u64, u64), Consumer: DataConsumer>
     }
 
     pub fn push_bytes(&mut self, bytes: impl IntoIterator<Item = u8>) -> Result<(), String> {
+        let old_len = self.pre_hamming_decode_buffer.len();
         self.pre_hamming_decode_buffer.extend(bytes);
+        let extended_by  = self.pre_hamming_decode_buffer.len() - old_len;
+        self.progress += extended_by as u64;
+        if self.progress - self.last_notification >= 10_000_000 {
+            self.last_notification = self.progress;
+            (self.progress_callback)(self.progress, self.size);
+        }
         while self.pre_hamming_decode_buffer.len() >= 8 {
             let mut chunk: Vec<u8> = self.pre_hamming_decode_buffer.drain(0..8).collect();
             assert_eq!(chunk.len(), 8);

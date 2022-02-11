@@ -91,6 +91,7 @@ fn parse_item(i: &str) -> ParseResult<(DataType, &str)> {
         parse_gps,
         parse_mux_check,
         parse_packed_switch,
+        parse_padding,
         parse_strain_gauge,
     ))(i)?;
     let (i, _) = tag(",")(i)?;
