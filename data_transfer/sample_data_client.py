@@ -17,4 +17,8 @@ async def main():
     print('Some data from the first channel is:')
     print(res)
 
+    res = await client.read_samples('sample', dd.channels[0], 4, 'avg', 0, 32)
+    print('Some 16x downsampled data is:')
+    print(res)
+
 asyncio.get_event_loop().run_until_complete(main())

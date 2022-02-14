@@ -11,12 +11,22 @@ class Request:
 
 
 class DatasetDescriptor:
-    def __init__(self, sample_rate, channels):
-        self.sample_rate = sample_rate
-        self.channels = channels
+    def __init__(self, channels):
+        self.channels = list(map(ChannelDescriptor, channels))
 
     def __repr__(self) -> str:
-        return f"sample_rate={self.sample_rate}, channels={self.channels}"
+        return f"{{channels={self.channels}}}"
+
+
+class ChannelDescriptor:
+    def __init__(self, channel):
+        self.sample_rate = channel['sample_rate']
+        self.name = channel['name']
+        self.type = channel['typ']
+        pass
+
+    def __repr__(self) -> str:
+        return f"{{sample_rate={self.sample_rate}, name={self.name}, type={self.type}}}"
 
 
 class Client:
@@ -35,18 +45,20 @@ class Client:
 
     async def dataset_descriptor(self, dataset: str) -> DatasetDescriptor:
         data = (await self._send({'DatasetDescriptor': dataset}))['DatasetDescriptor']
-        return DatasetDescriptor(data['sample_rate'], data['channels'])
+        return DatasetDescriptor(data['channels'])
 
-    async def read_samples(self, dataset: str, channel: Any, rate_modifier: int, filter: str, start: int, end: int):
+    async def read_samples(self, dataset: str, channel: ChannelDescriptor, rate_modifier: int, filter: str, start: int, end: int):
         payload = {
             'name': dataset,
-            'channel': channel,
+            'channel': channel.type,
             'rate_modifier': rate_modifier,
             'filter': filter,
             'start': start,
             'end': end,
         }
-        return (await self._send({'ReadSamples': payload}))['ReadSamples']
+        result = await self._send({'ReadSamples': payload})
+        print(result)
+        return result['ReadSamples']
 
     async def _handle_next_request(self):
         self.request_in_progress = True
