@@ -1,8 +1,5 @@
-use std::io::Read;
-
 use nom::{
-    branch::alt,
-    bytes::complete::{tag, take_until, take_while1},
+    bytes::complete::{tag, take_while1},
     combinator::fail,
     IResult, Parser,
 };

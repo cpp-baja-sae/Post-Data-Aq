@@ -4,16 +4,8 @@ mod utils;
 
 use std::io::Read;
 
-use nom::{
-    branch::alt,
-    bytes::complete::{tag, take_until, take_while1},
-    combinator::fail,
-    sequence::preceded,
-    IResult, Parser,
-};
-
 pub use self::descriptor::parse_descriptor;
-use crate::data_format::{Axis, DataType, FileDescriptor, PackedDataFrameDescriptor};
+use crate::data_format::FileDescriptor;
 
 pub fn read_descriptor(from: &mut impl Read) -> FileDescriptor {
     let mut size = [0; 4];

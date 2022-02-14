@@ -4,8 +4,6 @@ pub mod ingestion;
 pub mod read;
 pub mod util;
 
-use data_format::{Axis, DataType, FileDescriptor};
-
 pub fn example_file_descriptor() -> &'static str {
     concat!(
         "0,10000:PackedSwitch,Switches;AccelerometerX,Accelerometer X;",

@@ -1,14 +1,12 @@
 use std::{
-    borrow::BorrowMut,
     collections::VecDeque,
-    io::{self, ErrorKind, Read},
+    io::{self},
 };
 
-use super::generate_mips::{self, RootDataConsumer};
+use super::generate_mips::{self};
 use crate::{
-    data_format::{DataType, FileDescriptor, UnpackedChannelDescriptor, UnpackedFileDescriptor},
+    data_format::{DataType, FileDescriptor},
     hamming,
-    ingestion::read_descriptor::read_descriptor,
 };
 
 pub trait DataConsumer {

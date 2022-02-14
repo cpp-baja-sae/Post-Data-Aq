@@ -5,7 +5,6 @@ mod unpack;
 use std::{fs::File, io::Read};
 
 pub use read_descriptor::{parse_descriptor, read_descriptor};
-use serde::{Deserialize, Serialize};
 
 use self::unpack::{DataConsumer, DataFrameReader};
 

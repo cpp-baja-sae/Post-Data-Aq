@@ -1,15 +1,7 @@
-use std::io::Read;
+use nom::{branch::alt, bytes::complete::tag, sequence::preceded, Parser};
 
-use nom::{
-    branch::alt,
-    bytes::complete::{tag, take_until, take_while1},
-    combinator::fail,
-    sequence::preceded,
-    IResult, Parser,
-};
-
-use super::utils::{parse_int, parse_semicolon, ParseResult};
-use crate::data_format::{Axis, DataType, FileDescriptor, PackedDataFrameDescriptor};
+use super::utils::{parse_int, ParseResult};
+use crate::data_format::{Axis, DataType};
 
 pub fn parse_data_type(i: &str) -> ParseResult<DataType> {
     alt((

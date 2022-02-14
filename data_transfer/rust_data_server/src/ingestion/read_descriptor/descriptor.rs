@@ -1,18 +1,14 @@
-use std::io::Read;
-
 use nom::{
-    branch::alt,
-    bytes::complete::{tag, take_until, take_while1},
+    bytes::complete::{tag, take_until},
     combinator::fail,
-    sequence::preceded,
-    IResult, Parser,
+    Parser,
 };
 
 use super::{
     data_type::parse_data_type,
-    utils::{parse_int, parse_semicolon, ParseResult, parse_colon},
+    utils::{parse_colon, parse_int, parse_semicolon, ParseResult},
 };
-use crate::data_format::{Axis, DataType, FileDescriptor, PackedDataFrameDescriptor};
+use crate::data_format::{DataType, FileDescriptor, PackedDataFrameDescriptor};
 
 pub fn parse_descriptor(i: &str) -> ParseResult<FileDescriptor> {
     let mut data_frames = Vec::new();
