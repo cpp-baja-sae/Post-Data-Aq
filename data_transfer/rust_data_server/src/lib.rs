@@ -1,7 +1,6 @@
 pub mod data_format;
 pub mod hamming;
 pub mod ingestion;
-pub mod interface;
 pub mod read;
 pub mod util;
 

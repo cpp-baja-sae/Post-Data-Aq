@@ -1,13 +1,18 @@
 use std::{
     fs::File,
-    io::{self, BufReader, BufWriter, Read, Write},
+    io::{self, BufWriter, Write},
 };
 
 use super::unpack::DataConsumer;
-use crate::{
-    data_format::{DataType, FileDescriptor},
-    util::ProgressTracker,
-};
+use crate::data_format::{DataType, FileDescriptor};
+
+pub fn data_consumers_for(name: &str, descriptor: &FileDescriptor) -> Vec<impl DataConsumer> {
+    descriptor
+        .unpacked_channels
+        .iter()
+        .map(|ch| RootDataConsumer::<FileWriter>::new_file_backed(name, &ch.typ))
+        .collect()
+}
 
 #[derive(Clone, Copy, Debug)]
 pub enum Filter {
@@ -46,21 +51,29 @@ pub struct RootDataConsumer<W: Write = FileWriter> {
 
 impl<W: Write> RootDataConsumer<W> {
     pub fn new_file_backed(name: &str, channel: &DataType) -> RootDataConsumer<FileWriter> {
-        let min =
-            FilteredDataConsumer::<FileWriter>::new_file_backed(name, channel, 1, Filter::Minimum);
-        let max =
-            FilteredDataConsumer::<FileWriter>::new_file_backed(name, channel, 1, Filter::Maximum);
-        let avg =
-            FilteredDataConsumer::<FileWriter>::new_file_backed(name, channel, 1, Filter::Average);
+        let next = after_root_consumers(name, channel);
         let base = file_name_base(name, channel);
         let name = file_name(&base, 0, "");
         let file = File::create(name).unwrap();
         RootDataConsumer {
             output: BufWriter::new(file),
             odd_datum: None,
-            next: [min, max, avg],
+            next,
         }
     }
+}
+
+fn after_root_consumers(
+    name: &str,
+    channel: &DataType,
+) -> [FilteredDataConsumer<BufWriter<File>>; 3] {
+    let min =
+        FilteredDataConsumer::<FileWriter>::new_file_backed(name, channel, 1, Filter::Minimum);
+    let max =
+        FilteredDataConsumer::<FileWriter>::new_file_backed(name, channel, 1, Filter::Maximum);
+    let avg =
+        FilteredDataConsumer::<FileWriter>::new_file_backed(name, channel, 1, Filter::Average);
+    [min, max, avg]
 }
 
 impl<W: Write> DataConsumer for RootDataConsumer<W> {
@@ -105,7 +118,7 @@ impl<W: Write> FilteredDataConsumer<W> {
             None
         };
         let base = file_name_base(name, &channel);
-        let name = file_name(&base, lod, "");
+        let name = file_name(&base, lod, filter.name());
         let file = File::create(name).unwrap();
         let output = FileWriter::new(file);
         FilteredDataConsumer {
@@ -142,12 +155,4 @@ fn file_name(base: &str, mip_index: i32, filter_name: &str) -> String {
     } else {
         format!("{}-{}-{}.bin", base, mip_index, filter_name)
     }
-}
-
-pub fn data_consumers_for(name: &str, descriptor: &FileDescriptor) -> Vec<impl DataConsumer> {
-    descriptor
-        .unpacked_channels
-        .iter()
-        .map(|ch| RootDataConsumer::<FileWriter>::new_file_backed(name, &ch.typ))
-        .collect()
 }

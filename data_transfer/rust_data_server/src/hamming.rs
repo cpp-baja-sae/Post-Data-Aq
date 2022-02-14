@@ -17,6 +17,8 @@ pub fn encode(input: &mut [u8]) {
     }
 }
 
+/// Modifies input to be error-corrected. Every eighth byte must contain a
+/// Hamming error correction code.
 pub fn decode(input: &mut [u8]) -> Result<(), ()> {
     debug_assert_eq!(
         input.len() % 8,

@@ -32,7 +32,7 @@ enum ReadFrameError {
     Io(io::Error),
 }
 
-pub fn new_file_backed<'a, ProgressCallback: FnMut(u64, u64)>(
+pub fn new_file_backed_reader<'a, ProgressCallback: FnMut(u64, u64)>(
     size: u64,
     name: &'a str,
     descriptor: &'a FileDescriptor,

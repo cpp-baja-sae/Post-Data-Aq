@@ -1,133 +1,19 @@
-use std::{collections::HashMap, io::Read, thread::current};
+mod data_type;
+mod descriptor;
+mod utils;
+
+use std::io::Read;
 
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_until, take_while1},
     combinator::fail,
-    sequence::{preceded, tuple},
+    sequence::preceded,
     IResult, Parser,
 };
 
+pub use self::descriptor::parse_descriptor;
 use crate::data_format::{Axis, DataType, FileDescriptor, PackedDataFrameDescriptor};
-
-type ParseResult<'a, O> = IResult<&'a str, O>;
-
-fn parse_int(i: &str) -> ParseResult<i32> {
-    let (i, int_chars) = take_while1(char::is_numeric)(i)?;
-    match int_chars.parse() {
-        Ok(int) => Ok((i, int)),
-        Err(..) => fail(i),
-    }
-}
-
-fn parse_colon(i: &str) -> ParseResult<()> {
-    let (i, _) = tag(":")(i)?;
-    Ok((i, ()))
-}
-
-fn parse_semicolon(i: &str) -> ParseResult<()> {
-    let (i, _) = tag(";")(i)?;
-    Ok((i, ()))
-}
-
-fn parse_label(i: &str) -> ParseResult<(u8, i32)> {
-    let (i, label) = parse_int(i)?;
-    let (i, _) = tag(",")(i)?;
-    let (i, sample_rate) = parse_int(i)?;
-    let (i, _) = parse_colon(i)?;
-    Ok((i, (label as u8, sample_rate)))
-}
-
-fn parse_accelerometer(i: &str) -> ParseResult<DataType> {
-    alt((
-        tag("AccelerometerX").map(|_| Axis::X),
-        tag("AccelerometerY").map(|_| Axis::Y),
-        tag("AccelerometerZ").map(|_| Axis::Z),
-    ))
-    .map(|axis| DataType::Accelerometer(axis))
-    .parse(i)
-}
-
-fn parse_gps(i: &str) -> ParseResult<DataType> {
-    tag("GPS").map(|_| DataType::Gps).parse(i)
-}
-
-fn parse_mux_check(i: &str) -> ParseResult<DataType> {
-    preceded(tag("MuxCheck"), parse_int)
-        .map(|number| DataType::MuxCheck(number as u8))
-        .parse(i)
-}
-
-fn parse_padding(i: &str) -> ParseResult<DataType> {
-    tag("Padding").map(|_| DataType::Padding).parse(i)
-}
-
-fn parse_packed_switch(i: &str) -> ParseResult<DataType> {
-    tag("PackedSwitch")
-        .map(|_| {
-            DataType::PackedSwitch([
-                Some(0),
-                Some(1),
-                Some(2),
-                Some(3),
-                Some(4),
-                Some(5),
-                Some(6),
-                Some(7),
-            ])
-        })
-        .parse(i)
-}
-
-fn parse_strain_gauge(i: &str) -> ParseResult<DataType> {
-    preceded(tag("StrainGauge"), parse_int)
-        .map(|number| DataType::StrainGauge(number as usize))
-        .parse(i)
-}
-
-fn parse_item(i: &str) -> ParseResult<(DataType, &str)> {
-    let (i, item) = alt((
-        parse_accelerometer,
-        parse_gps,
-        parse_mux_check,
-        parse_packed_switch,
-        parse_padding,
-        parse_strain_gauge,
-    ))(i)?;
-    let (i, _) = tag(",")(i)?;
-    let (i, label) = take_until(";")(i)?;
-    let (i, _) = parse_semicolon(i)?;
-    Ok((i, (item, label)))
-}
-
-pub fn parse_descriptor(i: &str) -> ParseResult<FileDescriptor> {
-    let mut data_frames = Vec::new();
-    let mut current_data_frame = None;
-    let mut i = i;
-    while i.len() > 0 {
-        if let Ok((new_i, (label, sample_rate))) = parse_label(i) {
-            i = new_i;
-            let expected_label = current_data_frame.map(|x| x + 1).unwrap_or(0);
-            assert_eq!(expected_label, label, "Unexpected jump in data frame label");
-            current_data_frame = Some(label);
-            data_frames.push(PackedDataFrameDescriptor {
-                sample_rate: sample_rate as f32,
-                data_sequence: Vec::new(),
-            });
-        } else if let Ok((new_i, item)) = parse_item(i) {
-            i = new_i;
-            data_frames
-                .last_mut()
-                .expect("Unexpected item before any label")
-                .data_sequence
-                .push((item.0, item.1.to_owned()));
-        } else {
-            return fail(i);
-        }
-    }
-    let descriptor = FileDescriptor::new(data_frames);
-    Ok((i, descriptor))
-}
 
 pub fn read_descriptor(from: &mut impl Read) -> FileDescriptor {
     let mut size = [0; 4];
