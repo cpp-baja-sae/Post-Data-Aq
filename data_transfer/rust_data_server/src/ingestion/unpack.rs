@@ -7,11 +7,7 @@ use std::{
 };
 
 use super::generate_mips::{self};
-use crate::{
-    data_format::{DataType, FileDescriptor},
-    hamming,
-    util::ProgressTracker,
-};
+use crate::{data_format::FileDescriptor, util::ProgressTracker};
 
 pub trait DataConsumer {
     fn consume(&mut self, datum: f32) -> io::Result<()>;
