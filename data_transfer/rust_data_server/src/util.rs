@@ -17,6 +17,22 @@ impl ProgressTracker {
 
     pub fn advance(&mut self, amount: u64, progress_callback: &mut impl FnMut(u64, u64)) {
         self.bytes_so_far += amount;
+        self.send_progress_if_interval_has_elapsed(progress_callback);
+    }
+
+    pub fn set_progress(
+        &mut self,
+        bytes_so_far: u64,
+        progress_callback: &mut impl FnMut(u64, u64),
+    ) {
+        self.bytes_so_far = bytes_so_far;
+        self.send_progress_if_interval_has_elapsed(progress_callback);
+    }
+
+    fn send_progress_if_interval_has_elapsed(
+        &mut self,
+        progress_callback: &mut impl FnMut(u64, u64),
+    ) {
         if self.bytes_so_far - self.last_notification >= self.update_interval {
             progress_callback(self.bytes_so_far, self.total_bytes);
             self.last_notification = self.bytes_so_far;
