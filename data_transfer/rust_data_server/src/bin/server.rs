@@ -1,6 +1,6 @@
 use std::{net::TcpStream, thread};
 
-use rust_data_server::{data_format::UnpackedFileDescriptor, interface, read::ReadSamplesParams};
+use rust_data_server::{data_format::UnpackedFileDescriptor, read, read::ReadSamplesParams};
 use serde::{Deserialize, Serialize};
 use websocket::{
     sync::{Client, Server, Writer},
@@ -38,12 +38,12 @@ fn as_data(message: OwnedMessage) -> Option<String> {
 
 fn handle_request(request: Request, sender: &mut Writer<TcpStream>) {
     let payload = match request {
-        Request::ListDatasets => ResponsePayload::ListDatasets(interface::list_datasets()),
-        Request::DatasetDescriptor(name) => match interface::dataset_descriptor(&name) {
+        Request::ListDatasets => ResponsePayload::ListDatasets(read::list_datasets()),
+        Request::DatasetDescriptor(name) => match read::dataset_descriptor(&name) {
             Some(descriptor) => ResponsePayload::DatasetDescriptor(descriptor),
             None => ResponsePayload::Error(format!("'{}' is not a valid dataset", name)),
         },
-        Request::ReadSamples(params) => match interface::read_samples(params) {
+        Request::ReadSamples(params) => match read::read_samples(params) {
             Ok(data) => ResponsePayload::ReadSamples(data),
             Err(err) => ResponsePayload::Error(err),
         },
