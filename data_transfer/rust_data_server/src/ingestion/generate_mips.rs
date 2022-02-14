@@ -24,6 +24,14 @@ impl Filter {
             Filter::Average => (a + b) / 2.0,
         }
     }
+
+    pub fn name(self) -> &'static str {
+        match self {
+            Filter::Minimum => "min",
+            Filter::Maximum => "max",
+            Filter::Average => "avg",
+        }
+    }
 }
 
 type FileWriter = BufWriter<File>;
@@ -37,8 +45,21 @@ pub struct RootDataConsumer<W: Write = FileWriter> {
 }
 
 impl<W: Write> RootDataConsumer<W> {
-    pub fn new_file_backed(name: &str, channel: DataType) -> RootDataConsumer<FileWriter> {
-        todo!()
+    pub fn new_file_backed(name: &str, channel: &DataType) -> RootDataConsumer<FileWriter> {
+        let min =
+            FilteredDataConsumer::<FileWriter>::new_file_backed(name, channel, 1, Filter::Minimum);
+        let max =
+            FilteredDataConsumer::<FileWriter>::new_file_backed(name, channel, 1, Filter::Maximum);
+        let avg =
+            FilteredDataConsumer::<FileWriter>::new_file_backed(name, channel, 1, Filter::Average);
+        let base = file_name_base(name, channel);
+        let name = file_name(&base, 0, "");
+        let file = File::create(name).unwrap();
+        RootDataConsumer {
+            output: BufWriter::new(file),
+            odd_datum: None,
+            next: [min, max, avg],
+        }
     }
 }
 
@@ -66,6 +87,36 @@ pub struct FilteredDataConsumer<W: Write> {
     next: Option<Box<Self>>,
 }
 
+impl<W: Write> FilteredDataConsumer<W> {
+    fn new_file_backed(
+        name: &str,
+        channel: &DataType,
+        lod: i32,
+        filter: Filter,
+    ) -> FilteredDataConsumer<FileWriter> {
+        let next = if lod < 40 {
+            Some(Box::new(Self::new_file_backed(
+                name,
+                channel,
+                lod + 1,
+                filter,
+            )))
+        } else {
+            None
+        };
+        let base = file_name_base(name, &channel);
+        let name = file_name(&base, lod, "");
+        let file = File::create(name).unwrap();
+        let output = FileWriter::new(file);
+        FilteredDataConsumer {
+            output,
+            filter,
+            odd_datum: None,
+            next,
+        }
+    }
+}
+
 impl<W: Write> DataConsumer for FilteredDataConsumer<W> {
     fn consume(&mut self, datum: f32) -> io::Result<()> {
         if let Some(previous) = self.odd_datum.take() {
@@ -81,8 +132,8 @@ impl<W: Write> DataConsumer for FilteredDataConsumer<W> {
     }
 }
 
-fn file_name_base(directory: &str, channel: &DataType) -> String {
-    format!("{}/{:?}-rate", directory, channel)
+fn file_name_base(name: &str, channel: &DataType) -> String {
+    format!("cache/{}/{:?}-rate", name, channel)
 }
 
 fn file_name(base: &str, mip_index: i32, filter_name: &str) -> String {
@@ -97,6 +148,6 @@ pub fn data_consumers_for(name: &str, descriptor: &FileDescriptor) -> Vec<impl D
     descriptor
         .unpacked_channels
         .iter()
-        .map(|ch| RootDataConsumer::<FileWriter>::new_file_backed(name, ch.typ.clone()))
+        .map(|ch| RootDataConsumer::<FileWriter>::new_file_backed(name, &ch.typ))
         .collect()
 }

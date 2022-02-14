@@ -21,7 +21,6 @@ pub struct DataFrameReader<'a, ProgressCallback: FnMut(u64, u64), Consumer: Data
     size: u64,
     progress: u64,
     last_notification: u64,
-    name: &'a str,
     descriptor: &'a FileDescriptor,
     progress_callback: ProgressCallback,
     consumers: Vec<Consumer>,
@@ -39,13 +38,8 @@ pub fn new_file_backed<'a, ProgressCallback: FnMut(u64, u64)>(
     descriptor: &'a FileDescriptor,
     progress_callback: ProgressCallback,
 ) -> DataFrameReader<'a, ProgressCallback, impl DataConsumer> {
-    DataFrameReader::new(
-        size,
-        name,
-        descriptor,
-        progress_callback,
-        generate_mips::data_consumers_for(name, descriptor),
-    )
+    let consumers = generate_mips::data_consumers_for(name, descriptor);
+    DataFrameReader::new(size, descriptor, progress_callback, consumers)
 }
 
 impl<'a, ProgressCallback: FnMut(u64, u64), Consumer: DataConsumer>
@@ -53,7 +47,6 @@ impl<'a, ProgressCallback: FnMut(u64, u64), Consumer: DataConsumer>
 {
     pub fn new(
         size: u64,
-        name: &'a str,
         descriptor: &'a FileDescriptor,
         progress_callback: ProgressCallback,
         consumers: Vec<Consumer>,
@@ -69,7 +62,6 @@ impl<'a, ProgressCallback: FnMut(u64, u64), Consumer: DataConsumer>
             size,
             progress: 0,
             last_notification: 0,
-            name,
             descriptor,
             progress_callback,
             consumers,
@@ -79,9 +71,9 @@ impl<'a, ProgressCallback: FnMut(u64, u64), Consumer: DataConsumer>
     pub fn push_bytes(&mut self, bytes: impl IntoIterator<Item = u8>) -> Result<(), String> {
         let old_len = self.pre_hamming_decode_buffer.len();
         self.pre_hamming_decode_buffer.extend(bytes);
-        let extended_by  = self.pre_hamming_decode_buffer.len() - old_len;
+        let extended_by = self.pre_hamming_decode_buffer.len() - old_len;
         self.progress += extended_by as u64;
-        if self.progress - self.last_notification >= 10_000_000 {
+        if self.progress - self.last_notification >= 1_000_000 {
             self.last_notification = self.progress;
             (self.progress_callback)(self.progress, self.size);
         }
@@ -90,6 +82,7 @@ impl<'a, ProgressCallback: FnMut(u64, u64), Consumer: DataConsumer>
             assert_eq!(chunk.len(), 8);
             hamming::decode(chunk.as_mut_slice())
                 .map_err(|_| format!("Error detected during Hamming decode"))?;
+            // Remove last byte that was used to store a hamming code.
             chunk.pop().unwrap();
             self.post_hamming_decode_buffer.extend(chunk.into_iter());
         }
@@ -121,7 +114,6 @@ impl<'a, ProgressCallback: FnMut(u64, u64), Consumer: DataConsumer>
             let values = channel_typ
                 .unpack(data_ptr)
                 .map_err(ReadFrameError::CorruptData)?;
-            assert_eq!(values.len(), unpacked_channels.len());
             for value in values.into_iter() {
                 self.consumers[unpacked_channel_index]
                     .consume(value)

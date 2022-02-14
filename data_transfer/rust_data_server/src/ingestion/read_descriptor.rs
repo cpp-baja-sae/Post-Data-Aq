@@ -16,12 +16,12 @@ fn parse_int(i: &str) -> ParseResult<i32> {
     let (i, int_chars) = take_while1(char::is_numeric)(i)?;
     match int_chars.parse() {
         Ok(int) => Ok((i, int)),
-        Err(err) => fail(i),
+        Err(..) => fail(i),
     }
 }
 
 fn parse_colon(i: &str) -> ParseResult<()> {
-    let (i, _) = tag(";")(i)?;
+    let (i, _) = tag(":")(i)?;
     Ok((i, ()))
 }
 
@@ -100,8 +100,7 @@ fn parse_item(i: &str) -> ParseResult<(DataType, &str)> {
     Ok((i, (item, label)))
 }
 
-fn parse_descriptor(i: &str) -> ParseResult<FileDescriptor> {
-    let (i, _) = parse_semicolon(i)?;
+pub fn parse_descriptor(i: &str) -> ParseResult<FileDescriptor> {
     let mut data_frames = Vec::new();
     let mut current_data_frame = None;
     let mut i = i;
@@ -116,6 +115,7 @@ fn parse_descriptor(i: &str) -> ParseResult<FileDescriptor> {
                 data_sequence: Vec::new(),
             });
         } else if let Ok((new_i, item)) = parse_item(i) {
+            i = new_i;
             data_frames
                 .last_mut()
                 .expect("Unexpected item before any label")
