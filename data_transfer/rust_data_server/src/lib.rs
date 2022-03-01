@@ -3,6 +3,7 @@ pub mod hamming;
 pub mod ingestion;
 pub mod read;
 pub mod util;
+pub mod read_filtered;
 
 pub fn example_file_descriptor() -> &'static str {
     concat!(

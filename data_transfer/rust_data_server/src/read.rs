@@ -35,7 +35,7 @@ pub struct ReadSamplesParams {
     rate_modifier: u8,
     /// The filter to use when downsampling. Has no effect when rate_modifier is
     /// zero.
-    filter: String,
+    downsample_filter: String,
     /// The index to start reading at.
     start: u64,
     /// The index to stop reading before (it is exclusive.)
@@ -47,7 +47,7 @@ pub fn read_samples(
         name,
         channel,
         rate_modifier,
-        filter,
+        downsample_filter: filter,
         start,
         end,
     }: ReadSamplesParams,

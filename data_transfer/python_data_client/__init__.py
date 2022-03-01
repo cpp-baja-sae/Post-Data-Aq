@@ -52,7 +52,7 @@ class Client:
             'name': dataset,
             'channel': channel.type,
             'rate_modifier': rate_modifier,
-            'filter': filter,
+            'downsample_filter': filter,
             'start': start,
             'end': end,
         }
