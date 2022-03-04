@@ -27,19 +27,19 @@ pub fn dataset_descriptor(name: &str) -> Option<UnpackedFileDescriptor> {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ReadSamplesParams {
     /// The name of the dataset being read from.
-    name: String,
+    pub name: String,
     /// The channel in the dataset being read from.
-    channel: DataType,
+    pub channel: DataType,
     /// The sample rate will be divided by 2 to the power of this number. For
     /// example, to get 16x downsampling, use `4`.
-    rate_modifier: u8,
+    pub rate_modifier: u8,
     /// The filter to use when downsampling. Has no effect when rate_modifier is
     /// zero.
-    downsample_filter: String,
+    pub downsample_filter: String,
     /// The index to start reading at.
-    start: u64,
+    pub start: u64,
     /// The index to stop reading before (it is exclusive.)
-    end: u64,
+    pub end: u64,
 }
 
 pub fn read_samples(

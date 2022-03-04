@@ -2,9 +2,9 @@ pub mod data_format;
 pub mod hamming;
 pub mod ingestion;
 pub mod read;
-pub mod util;
 pub mod read_filtered;
-pub mod cheby;
+pub mod util;
+mod fir_lowpass;
 
 pub fn example_file_descriptor() -> &'static str {
     concat!(

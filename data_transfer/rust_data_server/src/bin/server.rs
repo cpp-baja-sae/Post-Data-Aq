@@ -1,6 +1,11 @@
 use std::{net::TcpStream, thread};
 
-use rust_data_server::{data_format::UnpackedFileDescriptor, read, read::ReadSamplesParams};
+use rust_data_server::{
+    data_format::UnpackedFileDescriptor,
+    read,
+    read::ReadSamplesParams,
+    read_filtered::{self, ReadFilteredSamplesParams},
+};
 use serde::{Deserialize, Serialize};
 use websocket::{
     sync::{Client, Server, Writer},
@@ -12,6 +17,7 @@ pub enum Request {
     ListDatasets,
     DatasetDescriptor(String),
     ReadSamples(ReadSamplesParams),
+    ReadFilteredSamples(ReadFilteredSamplesParams),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -47,6 +53,12 @@ fn handle_request(request: Request, sender: &mut Writer<TcpStream>) {
             Ok(data) => ResponsePayload::ReadSamples(data),
             Err(err) => ResponsePayload::Error(err),
         },
+        Request::ReadFilteredSamples(params) => {
+            match read_filtered::read_filtered_samples(params) {
+                Ok(data) => ResponsePayload::ReadSamples(data),
+                Err(err) => ResponsePayload::Error(err),
+            }
+        }
     };
     let response = Response {
         r#final: true,
