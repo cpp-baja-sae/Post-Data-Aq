@@ -7,6 +7,7 @@ version = "0.1.0"
 
 [dependencies]
 nom = "7.1.0"
+num = "0.4.0"
 rand = "0.8.4" 
 secded = "1.1.0" # Hamming code
 serde = {version = "1.0.136", features = ["derive"]} 

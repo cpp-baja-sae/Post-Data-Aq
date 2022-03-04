@@ -4,6 +4,7 @@ pub mod ingestion;
 pub mod read;
 pub mod util;
 pub mod read_filtered;
+pub mod cheby;
 
 pub fn example_file_descriptor() -> &'static str {
     concat!(
