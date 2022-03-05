@@ -1,5 +1,7 @@
-use std::{net::TcpStream, thread};
+#[macro_use]
+extern crate rocket;
 
+use rocket::{form::Form, serde::json::Json};
 use rust_data_server::{
     data_format::UnpackedFileDescriptor,
     read,
@@ -7,10 +9,6 @@ use rust_data_server::{
     read_filtered::{self, ReadFilteredSamplesParams},
 };
 use serde::{Deserialize, Serialize};
-use websocket::{
-    sync::{Client, Server, Writer},
-    Message, OwnedMessage,
-};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Request {
@@ -34,70 +32,25 @@ pub enum ResponsePayload {
     ReadSamples(Vec<f32>),
 }
 
-fn as_data(message: OwnedMessage) -> Option<String> {
-    if let OwnedMessage::Text(text) = message {
-        Some(text)
-    } else {
-        None
-    }
+#[get("/datasets")]
+fn list_datasets() -> Json<Vec<String>> {
+    Json(read::list_datasets())
 }
 
-fn handle_request(request: Request, sender: &mut Writer<TcpStream>) {
-    let payload = match request {
-        Request::ListDatasets => ResponsePayload::ListDatasets(read::list_datasets()),
-        Request::DatasetDescriptor(name) => match read::dataset_descriptor(&name) {
-            Some(descriptor) => ResponsePayload::DatasetDescriptor(descriptor),
-            None => ResponsePayload::Error(format!("'{}' is not a valid dataset", name)),
-        },
-        Request::ReadSamples(params) => match read::read_samples(params) {
-            Ok(data) => ResponsePayload::ReadSamples(data),
-            Err(err) => ResponsePayload::Error(err),
-        },
-        Request::ReadFilteredSamples(params) => {
-            match read_filtered::read_filtered_samples(params) {
-                Ok(data) => ResponsePayload::ReadSamples(data),
-                Err(err) => ResponsePayload::Error(err),
-            }
-        }
-    };
-    let response = Response {
-        r#final: true,
-        payload,
-    };
-    let data = serde_json::to_string(&response).unwrap();
-    sender.send_message(&Message::text(data)).unwrap();
+#[get("/datasets/<name>")]
+fn read_dataset_descriptor(name: &str) -> Result<Json<UnpackedFileDescriptor>, String> {
+    let result = read::dataset_descriptor(name)
+        .ok_or_else(|| format!("The specified dataset does not exist."));
+    Ok(Json(result?))
 }
 
-fn handle_client(connection: Client<TcpStream>) {
-    let addr = connection.peer_addr().unwrap();
-    let (mut receiver, mut sender) = connection.split().unwrap();
-    for request in receiver
-        .incoming_messages()
-        .filter_map(Result::ok)
-        .filter_map(as_data)
-    {
-        let request = serde_json::from_str(&request);
-        println!("{:?}", request);
-        if let Err(err) = request {
-            let response = Response {
-                r#final: true,
-                payload: ResponsePayload::Error(err.to_string()),
-            };
-            let data = serde_json::to_string(&response).unwrap();
-            sender.send_message(&Message::text(data)).unwrap();
-        } else {
-            handle_request(request.unwrap(), &mut sender);
-        }
-    }
-    println!("Connection from {} closed.", addr);
+#[get("/datasets/<name>/samples?<params>")]
+fn read_samples(name: &str, params: Json<ReadSamplesParams>) -> Result<Json<Vec<f32>>, String> {
+    let result = read::read_samples(name, params.0);
+    Ok(Json(result?))
 }
 
-pub fn main() {
-    let server = Server::bind("localhost:6583").unwrap();
-    println!("Server running on localhost:6583");
-    for connection in server.filter_map(Result::ok) {
-        println!("New connection from {:?}", connection.origin());
-        let client = connection.accept().unwrap();
-        thread::spawn(|| handle_client(client));
-    }
+#[launch]
+fn rocket() -> _ {
+    rocket::build().mount("/", routes![list_datasets, read_dataset_descriptor, read_samples])
 }

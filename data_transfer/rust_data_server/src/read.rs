@@ -3,6 +3,7 @@ use std::{
     io::{BufReader, Read, Seek, SeekFrom},
 };
 
+use rocket::FromForm;
 use serde::{Deserialize, Serialize};
 
 use crate::data_format::{DataType, UnpackedFileDescriptor};
@@ -26,8 +27,6 @@ pub fn dataset_descriptor(name: &str) -> Option<UnpackedFileDescriptor> {
 /// All the parameters necessary to specify what data to read.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ReadSamplesParams {
-    /// The name of the dataset being read from.
-    pub name: String,
     /// The channel in the dataset being read from.
     pub channel: DataType,
     /// The sample rate will be divided by 2 to the power of this number. For
@@ -43,8 +42,8 @@ pub struct ReadSamplesParams {
 }
 
 pub fn read_samples(
+    name: &str,
     ReadSamplesParams {
-        name,
         channel,
         rate_modifier,
         downsample_filter: filter,
@@ -58,7 +57,7 @@ pub fn read_samples(
 }
 
 fn open_source_file(
-    name: String,
+    name: &str,
     channel: DataType,
     rate_modifier: u8,
     filter: String,
@@ -92,7 +91,7 @@ fn setup_reader(mut file: File, start: u64, end: u64) -> (BufReader<File>, usize
 }
 
 fn make_file_path(
-    name: String,
+    name: &str,
     channel: DataType,
     rate_modifier: u8,
     filter: String,

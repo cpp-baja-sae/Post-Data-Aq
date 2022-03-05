@@ -28,6 +28,7 @@ fn convolve(data: &[f32], kernel: &[f32]) -> f32 {
 }
 
 pub fn read_filtered_samples(
+    name: &str,
     ReadFilteredSamplesParams {
         mut source,
         relative_cutoff,
@@ -42,7 +43,7 @@ pub fn read_filtered_samples(
     let old_range = source.end - source.start;
     source.start -= (ORDER / 2) as u64;
     source.end += (ORDER / 2) as u64;
-    let source_data = read::read_samples(source)?;
+    let source_data = read::read_samples(name, source)?;
     let mut output = Vec::new();
     let kernel = make_filter(relative_cutoff);
     for i in 0..(old_range as usize) {

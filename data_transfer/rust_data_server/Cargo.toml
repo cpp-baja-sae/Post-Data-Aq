@@ -6,10 +6,10 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nom = "7.1.0"
-num = "0.4.0"
+nom = "7.1.0" 
+num = "0.4.0" 
 rand = "0.8.4" 
+rocket = {version = "0.5.0-rc.1", features = ["json"]} 
 secded = "1.1.0" # Hamming code
 serde = {version = "1.0.136", features = ["derive"]} 
-serde_json = "1.0" 
-websocket = "0.26.2"
+serde_json = "1.0"
