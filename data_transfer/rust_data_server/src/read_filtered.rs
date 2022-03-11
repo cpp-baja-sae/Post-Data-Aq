@@ -23,6 +23,9 @@ fn convolve(data: &[f32], kernel: &[f32]) -> f32 {
     let mut result = 0.0;
     for (d, k) in data.iter().copied().zip(kernel.iter().copied()) {
         result += d * k;
+        if result.is_nan() {
+            break;
+        }
     }
     result
 }
@@ -46,6 +49,7 @@ pub fn read_filtered_samples(
     let source_data = read::read_samples(name, source)?;
     let mut output = Vec::new();
     let kernel = make_filter(relative_cutoff);
+    println!("{:?}", kernel);
     for i in 0..(old_range as usize) {
         output.push(convolve(&source_data[i..i+ORDER], &kernel));
     }

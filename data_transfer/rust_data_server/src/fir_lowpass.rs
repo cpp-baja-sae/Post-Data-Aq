@@ -6,14 +6,22 @@ fn sinc(x: f32) -> f32 {
         1.0
     } else {
         let x = x * PI;
-        x.sin() / x
+        let res = x.sin() / x;
+        if res.is_infinite() {
+            panic!("{:?}", x)
+        }
+        res
     }
 }
 
 /// https://en.wikipedia.org/wiki/Window_function#Welch_window
 fn welch_window(index: usize, size: usize) -> f32 {
     let (index, size) = (index as f32, size as f32);
-    1.0 / (index - (size / 2.0)).powi(2) / (size / 2.0)
+    let res = 1.0 - ((index - size / 2.0) / (size / 2.0)).powi(2);
+    if res.is_infinite() {
+        panic!("{:?} {:?}", index, size);
+    }
+    res
 }
 
 /// Windowed Sinc function.
@@ -21,10 +29,9 @@ fn welch_window(index: usize, size: usize) -> f32 {
 pub fn fir_lowpass_kernel(size: usize, cutoff: f32) -> Vec<f32> {
     let half_size = (size as f32 - 1.0) / 2.0;
 
-    todo!()
-}
-
-#[test]
-fn test_fir_lowpass_kernel() {
-    let actual = fir_lowpass_kernel(32, 0.5);
+    let kernel: Vec<_> = (0..size)
+        .map(|x| welch_window(x, size) * sinc((x as f32 - half_size) / half_size * cutoff))
+        .collect();
+    let norm = kernel.iter().copied().sum::<f32>();
+    kernel.into_iter().map(|x| x / norm).collect()
 }

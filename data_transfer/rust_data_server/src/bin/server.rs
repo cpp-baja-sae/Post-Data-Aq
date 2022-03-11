@@ -50,7 +50,24 @@ fn read_samples(name: &str, params: Json<ReadSamplesParams>) -> Result<Json<Vec<
     Ok(Json(result?))
 }
 
+#[get("/datasets/<name>/filtered_samples?<params>")]
+fn read_filtered_samples(
+    name: &str,
+    params: Json<ReadFilteredSamplesParams>,
+) -> Result<Json<Vec<f32>>, String> {
+    let result = read_filtered::read_filtered_samples(name, params.0);
+    Ok(Json(result?))
+}
+
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![list_datasets, read_dataset_descriptor, read_samples])
+    rocket::build().mount(
+        "/",
+        routes![
+            list_datasets,
+            read_dataset_descriptor,
+            read_samples,
+            read_filtered_samples
+        ],
+    )
 }
