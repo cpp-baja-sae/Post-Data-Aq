@@ -1,1 +1,9 @@
-export './src/test.dart' show listDatasets, getDatasetInfo;
+export './src/test.dart'
+    show
+        listDatasets,
+        getDatasetInfo,
+        ChannelDescriptor,
+        FileDescriptor,
+        ReadSamplesParams,
+        getSamples,
+        getFilteredSamples;

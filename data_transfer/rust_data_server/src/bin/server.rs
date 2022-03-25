@@ -50,18 +50,21 @@ fn read_dataset_descriptor(
 }
 
 #[get("/datasets/<name>/samples?<params>")]
-fn read_samples(name: &str, params: Json<ReadSamplesParams>) -> Result<Json<Vec<f32>>, String> {
+fn read_samples(
+    name: &str,
+    params: Json<ReadSamplesParams>,
+) -> Result<Json<Vec<f32>>, status::NotFound<String>> {
     let result = read::read_samples(name, params.0);
-    Ok(Json(result?))
+    Ok(Json(result.map_err(|e| status::NotFound(e))?))
 }
 
 #[get("/datasets/<name>/filtered_samples?<params>")]
 fn read_filtered_samples(
     name: &str,
     params: Json<ReadFilteredSamplesParams>,
-) -> Result<Json<Vec<f32>>, String> {
+) -> Result<Json<Vec<f32>>, status::NotFound<String>> {
     let result = read_filtered::read_filtered_samples(name, params.0);
-    Ok(Json(result?))
+    Ok(Json(result.map_err(|e| status::NotFound(e))?))
 }
 
 #[launch]
