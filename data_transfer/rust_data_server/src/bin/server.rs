@@ -37,6 +37,11 @@ fn list_datasets() -> Json<Vec<String>> {
     Json(read::list_datasets())
 }
 
+#[post("/datasets/import")]
+fn import_dataset() -> () {
+    
+}
+
 #[get("/datasets/<name>")]
 fn read_dataset_descriptor(name: &str) -> Result<Json<UnpackedFileDescriptor>, String> {
     let result = read::dataset_descriptor(name)

@@ -1,0 +1,6 @@
+name: dart_data_client
+version: 0.1.0
+description: Client for the Rust data server
+environment:
+  sdk: '>=2.10.0 <3.0.0'
+# dependencies:
