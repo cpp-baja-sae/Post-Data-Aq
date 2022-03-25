@@ -3,4 +3,9 @@ version: 0.1.0
 description: Client for the Rust data server
 environment:
   sdk: '>=2.10.0 <3.0.0'
-# dependencies:
+dependencies:
+  json_annotation: ^4.4.0
+
+dev_dependencies:
+  build_runner: ^2.0.0
+  json_serializable: ^6.0.0

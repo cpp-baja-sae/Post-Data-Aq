@@ -1,1 +1,1 @@
-export './src/test.dart' show myFunc;
+export './src/test.dart' show listDatasets, getDatasetInfo;

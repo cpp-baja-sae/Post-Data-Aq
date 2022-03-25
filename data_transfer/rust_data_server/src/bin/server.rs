@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate rocket;
 
-use rocket::{form::Form, serde::json::Json};
+use rocket::{form::Form, response::status, serde::json::Json};
 use rust_data_server::{
     data_format::UnpackedFileDescriptor,
     read,
@@ -38,14 +38,14 @@ fn list_datasets() -> Json<Vec<String>> {
 }
 
 #[post("/datasets/import")]
-fn import_dataset() -> () {
-    
-}
+fn import_dataset() -> () {}
 
 #[get("/datasets/<name>")]
-fn read_dataset_descriptor(name: &str) -> Result<Json<UnpackedFileDescriptor>, String> {
+fn read_dataset_descriptor(
+    name: &str,
+) -> Result<Json<UnpackedFileDescriptor>, status::NotFound<String>> {
     let result = read::dataset_descriptor(name)
-        .ok_or_else(|| format!("The specified dataset does not exist."));
+        .ok_or_else(|| status::NotFound(format!("The specified dataset does not exist.")));
     Ok(Json(result?))
 }
 
