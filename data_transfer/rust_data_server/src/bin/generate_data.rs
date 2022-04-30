@@ -61,7 +61,7 @@ fn main() {
         }
         while buffer.len() >= 8 {
             let reserve_byte = std::mem::take(&mut buffer[7]);
-            hamming::encode(&mut buffer[..8]);
+            hamming::encode_bytes(&mut buffer[..8]);
             file.write_all(&buffer[..8]).unwrap();
             buffer.drain(0..7);
             buffer[0] = reserve_byte;

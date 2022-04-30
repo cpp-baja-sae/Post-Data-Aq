@@ -26,7 +26,7 @@ impl<'a, ProgressCallback: FnMut(u64, u64), Consumer: DataConsumer>
         while self.pre_hamming_decode_buffer.len() >= 8 {
             let mut chunk: Vec<u8> = self.pre_hamming_decode_buffer.drain(0..8).collect();
             assert_eq!(chunk.len(), 8);
-            hamming::decode(chunk.as_mut_slice())
+            hamming::decode_bytes(chunk.as_mut_slice())
                 .map_err(|_| format!("Error detected during Hamming decode"))?;
             // Remove last byte that was used to store a hamming code.
             chunk.pop().unwrap();

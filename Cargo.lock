@@ -94,10 +94,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4a45a46ab1f2412e53d3a0ade76ffad2025804294569aae387231a0cd6e0899"
 
 [[package]]
-name = "byteorder"
-version = "1.4.3"
+name = "bytemuck"
+version = "1.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
+checksum = "cdead85bdec19c194affaeeb670c0e41fe23de31459efd1c174d049269cf02cc"
 
 [[package]]
 name = "bytes"
@@ -984,11 +984,11 @@ dependencies = [
 name = "rust_data_server"
 version = "0.1.0"
 dependencies = [
+ "bytemuck",
  "nom",
  "num",
  "rand",
  "rocket",
- "secded",
  "serde",
  "serde_json",
 ]
@@ -1025,16 +1025,6 @@ name = "scopeguard"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
-
-[[package]]
-name = "secded"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50763bfbfb938531504a97aa359eca427bfe8f709eda7e1cd475ba3be549ed24"
-dependencies = [
- "byteorder",
- "lazy_static",
-]
 
 [[package]]
 name = "semver"
