@@ -42,7 +42,7 @@ class _MyHomePageState extends State<_MyHomePage> {
                   Series(
                     id: "primary",
                     data: List.generate(
-                            101, (i) => ((i / numpts) * scale + start))
+                            numpts, (i) => ((i / numpts - 0.5) * scale + start))
                         .map((x) => _Graph(x, cos(x) * a))
                         .toList(),
                     domainFn: (x, _) => x.xval,
@@ -52,7 +52,8 @@ class _MyHomePageState extends State<_MyHomePage> {
                 animate: false,
                 animationDuration: Duration(milliseconds: 20),
                 domainAxis: NumericAxisSpec(
-                    viewport: NumericExtents(start, start + scale)),
+                    viewport: NumericExtents(
+                        start - 0.5 * scale, start + 0.5 * scale)),
               ),
             ),
             onPanUpdate: (DragUpdateDetails details) {
