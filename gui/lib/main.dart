@@ -30,9 +30,9 @@ class _MyHomePageState extends State<_MyHomePage> {
 
   _MyHomePageState() {
     getDatasetInfo("sample").then((info) {
-      dataBuffer =
-          DataBuffer("sample", info.channels[0], () => setState(() {}));
-      setState(() {});
+      // dataBuffer =
+      //     DataBuffer("sample", info.channels[0], () => setState(() {}));
+      // setState(() {});
     });
   }
 

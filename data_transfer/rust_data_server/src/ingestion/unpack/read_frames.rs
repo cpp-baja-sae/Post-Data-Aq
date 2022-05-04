@@ -85,7 +85,7 @@ fn unpack_datum_from_channel(
     unpacked_channel_index: &mut usize,
 ) -> Result<(), ReadFrameError> {
     let values = channel_typ
-        .unpack(data_ptr)
+        .unpack(&data_ptr[..channel_typ.num_packed_bytes()])
         .map_err(ReadFrameError::CorruptData)?;
     *data_ptr = &data_ptr[channel_typ.num_packed_bytes()..];
     write_datum_to_unpacked_channels(values, consumers, unpacked_channel_index)?;
