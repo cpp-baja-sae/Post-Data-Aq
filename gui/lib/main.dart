@@ -1,6 +1,5 @@
 import 'package:dart_data_client/dart_data_client.dart';
 import 'package:flutter/material.dart';
-import 'package:charts_flutter/flutter.dart';
 import 'dart:math';
 
 void main() {
@@ -18,6 +17,34 @@ class _ChartApp extends StatelessWidget {
 class _MyHomePage extends StatefulWidget {
   @override
   _MyHomePageState createState() => _MyHomePageState();
+}
+
+class GraphPainter extends CustomPainter {
+  double start;
+  double scale;
+  double scaleOffset;
+  List<double> dataPoints;
+
+  GraphPainter(this.start, this.scale, this.scaleOffset, this.dataPoints);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.clipRect(Rect.fromLTRB(0, 0, size.width, size.height));
+    var p = Paint();
+    p.color = Color(0xFF00FF00);
+    p.strokeWidth = 5.0;
+    double valToY(val) => (1.0 - val) * size.height;
+    Offset previous = Offset(0, valToY(dataPoints[0]));
+    double xInterval = size.width / 100;
+    for (var point in dataPoints) {
+      Offset next = Offset(previous.dx + xInterval, valToY(point));
+      canvas.drawLine(previous, next, p);
+      previous = next;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 class _MyHomePageState extends State<_MyHomePage> {
@@ -46,25 +73,26 @@ class _MyHomePageState extends State<_MyHomePage> {
           child: Column(children: [
         GestureDetector(
             behavior: HitTestBehavior.opaque,
-            child: SizedBox(
-              width: 1000,
-              height: 500,
-              child: LineChart(
-                [
-                  Series(
-                    id: "primary",
-                    data: dataPoints,
-                    domainFn: (x, i) =>
-                        (i ?? 0) * scale * zoomOffset + start,
-                    measureFn: (x, _) => x,
-                  )
-                ],
-                animate: false,
-                animationDuration: Duration(milliseconds: 20),
-                domainAxis: NumericAxisSpec(
-                    viewport: NumericExtents(start, start + numpts * scale)),
-              ),
-            ),
+            child: CustomPaint(
+                painter: GraphPainter(start, scale, zoomOffset, dataPoints),
+                child: const AspectRatio(
+                  aspectRatio: 2.0,
+                )),
+            // child: LineChart(
+            //   [
+            //     Series(
+            //       id: "primary",
+            //       data: dataPoints,
+            //       domainFn: (x, i) =>
+            //           (i ?? 0) * scale * zoomOffset + start,
+            //       measureFn: (x, _) => x,
+            //     )
+            //   ],
+            //   animate: false,
+            //   animationDuration: Duration(milliseconds: 20),
+            //   domainAxis: NumericAxisSpec(
+            //       viewport: NumericExtents(start, start + numpts * scale)),
+            // ),
             onPanUpdate: (DragUpdateDetails details) {
               setState(() {
                 start -= scale * details.delta.dx;
