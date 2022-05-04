@@ -19,13 +19,21 @@ class DataBuffer {
   List<LodBuffer> buffers =
       List.generate(NUM_LODS, (rateModifier) => LodBuffer(rateModifier));
 
-  DataBuffer(this.datasetName, this.channel, this.dataModifiedCallback);
+  DataBuffer(this.datasetName, this.channel, this.dataModifiedCallback) {
+    for (int i = 0; i < NUM_LODS; i++) {
+      getDataFromServer(0, i);
+    }
+  }
 
   void getDataFromServer(int firstSample, int rateModifier) {
+    if (firstSample < 0) {
+      firstSample = 0;
+    }
     getSamples(
             datasetName,
             ReadSamplesParams(
-                channel, firstSample, firstSample + DATA_BUFFER_SIZE))
+                channel, firstSample, firstSample + DATA_BUFFER_SIZE,
+                rateModifier: rateModifier))
         .then((data) {
       var buf = buffers[rateModifier];
       buf.firstSample = firstSample;
@@ -33,6 +41,13 @@ class DataBuffer {
       buf.data = data;
       dataModifiedCallback();
     });
+  }
+
+  double getZoomOffset(double zoom) {
+    while (zoom < 1.0) {
+      zoom *= 2.0;
+    }
+    return zoom;
   }
 
   // Zoom is how many points in [into] per sample point.
@@ -50,15 +65,21 @@ class DataBuffer {
     var firstSample = start.floor();
     var lastSample = firstSample + len;
     var buf = buffers[rateModifier];
-    if (buf.firstSample + MOVE_FRAME_CUTOFF > firstSample ||
-        buf.lastSample - MOVE_FRAME_CUTOFF < lastSample) {
+    if ((buf.firstSample + MOVE_FRAME_CUTOFF > firstSample ||
+            buf.lastSample - MOVE_FRAME_CUTOFF < lastSample) &&
+        firstSample > MOVE_FRAME_CUTOFF) {
       getDataFromServer(
           firstSample - (DATA_BUFFER_SIZE / 2).floor(), rateModifier);
       into.fillRange(0, len, 0.0);
       return false;
     } else {
       for (int i = 0; i < len; i++) {
-        into[i] = buf.data[i + firstSample - buf.firstSample];
+        var index = i + firstSample - buf.firstSample;
+        if (index < buf.data.length) {
+          into[i] = buf.data[index];
+        } else {
+          into[i] = 0.0;
+        }
       }
       return true;
     }

@@ -30,15 +30,16 @@ class _MyHomePageState extends State<_MyHomePage> {
 
   _MyHomePageState() {
     getDatasetInfo("sample").then((info) {
-      // dataBuffer =
-      //     DataBuffer("sample", info.channels[0], () => setState(() {}));
-      // setState(() {});
+      dataBuffer =
+          DataBuffer("sample", info.channels[0], () => setState(() {}));
+      setState(() {});
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    dataBuffer?.getData(dataPoints, start, scale);
+    dataBuffer?.getData(dataPoints, start, 1.0 / scale);
+    var zoomOffset = dataBuffer?.getZoomOffset(1.0 / scale) ?? 1.0;
     return Scaffold(
       appBar: AppBar(title: const Text('Graphing Page')),
       body: SingleChildScrollView(
@@ -54,20 +55,20 @@ class _MyHomePageState extends State<_MyHomePage> {
                     id: "primary",
                     data: dataPoints,
                     domainFn: (x, i) =>
-                        i == null ? 0 : (i / numpts) * scale + start,
+                        (i ?? 0) * scale * zoomOffset + start,
                     measureFn: (x, _) => x,
                   )
                 ],
                 animate: false,
                 animationDuration: Duration(milliseconds: 20),
                 domainAxis: NumericAxisSpec(
-                    viewport: NumericExtents(
-                        start - 0.5 * scale, start + 0.5 * scale)),
+                    viewport: NumericExtents(start, start + numpts * scale)),
               ),
             ),
             onPanUpdate: (DragUpdateDetails details) {
               setState(() {
-                start -= scale * 0.01 * details.delta.dx;
+                start -= scale * details.delta.dx;
+                if (start < 0.0) start = 0.0;
                 scale *= pow(1.01, details.delta.dy);
               });
             }),
