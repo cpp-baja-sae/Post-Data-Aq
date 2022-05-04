@@ -1,7 +1,8 @@
 #[macro_use]
 extern crate rocket;
 
-use rocket::{form::Form, response::status, serde::json::Json};
+use rocket::{fairing::Fairing, form::Form, response::status, serde::json::Json};
+use rocket_cors::CorsOptions;
 use rust_data_server::{
     data_format::UnpackedFileDescriptor,
     read,
@@ -69,13 +70,21 @@ fn read_filtered_samples(
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount(
-        "/",
-        routes![
-            list_datasets,
-            read_dataset_descriptor,
-            read_samples,
-            read_filtered_samples
-        ],
-    )
+    rocket::build()
+        .attach(
+            CorsOptions {
+                ..Default::default()
+            }
+            .to_cors()
+            .unwrap(),
+        )
+        .mount(
+            "/",
+            routes![
+                list_datasets,
+                read_dataset_descriptor,
+                read_samples,
+                read_filtered_samples
+            ],
+        )
 }
