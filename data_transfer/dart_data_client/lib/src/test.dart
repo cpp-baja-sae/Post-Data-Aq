@@ -1,20 +1,18 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:http/http.dart';
 
 Future<List<String>> listDatasets() async {
-  var req =
-      await HttpClient().getUrl(Uri.parse("http://127.0.0.1:9876/datasets"));
-  var res = await req.close();
-  var text = await res.transform(Utf8Decoder()).join();
+  var res = await Client().get(Uri.parse("http://127.0.0.1:9876/datasets"));
+  var text = res.body;
   var body =
       (json.decode(text) as List<dynamic>).map((x) => x as String).toList();
   return body;
 }
 
 class ChannelDescriptor {
-  double sampleRate;
-  String name;
-  Map<String, dynamic> typ;
+  double sampleRate = 0.0;
+  String name = "";
+  Map<String, dynamic> typ = new Map();
 
   ChannelDescriptor(Map<String, dynamic> map) {
     this.sampleRate = map["sample_rate"];
@@ -24,7 +22,7 @@ class ChannelDescriptor {
 }
 
 class FileDescriptor {
-  List<ChannelDescriptor> channels;
+  List<ChannelDescriptor> channels = List.empty(growable: true);
 
   FileDescriptor(Map<String, dynamic> map) {
     this.channels =
@@ -33,10 +31,9 @@ class FileDescriptor {
 }
 
 Future<FileDescriptor> getDatasetInfo(String name) async {
-  var req = await HttpClient()
-      .getUrl(Uri.parse("http://127.0.0.1:9876/datasets/" + name));
-  var res = await req.close();
-  var text = await res.transform(Utf8Decoder()).join();
+  var res =
+      await Client().get(Uri.parse("http://127.0.0.1:9876/datasets/" + name));
+  var text = res.body;
   if (res.statusCode >= 400) {
     throw Exception(text);
   }
@@ -66,14 +63,13 @@ class ReadSamplesParams {
 }
 
 Future<List<double>> getSamples(String name, ReadSamplesParams params) async {
-  var req = await HttpClient().getUrl(Uri(
+  var res = await Client().get(Uri(
       scheme: "http",
       host: "localhost",
       port: 9876,
       path: "datasets/" + name + "/samples",
       queryParameters: {'params': json.encode(params.toJson())}));
-  var res = await req.close();
-  var text = await res.transform(Utf8Decoder()).join();
+  var text = res.body;
   if (res.statusCode >= 400) {
     throw Exception(text);
   }
@@ -96,14 +92,13 @@ class ReadFilteredSamplesParams {
 
 Future<List<double>> getFilteredSamples(
     String name, ReadFilteredSamplesParams params) async {
-  var req = await HttpClient().getUrl(Uri(
+  var res = await Client().get(Uri(
       scheme: "http",
       host: "localhost",
       port: 9876,
       path: "datasets/" + name + "/filtered_samples",
       queryParameters: {'params': json.encode(params.toJson())}));
-  var res = await req.close();
-  var text = await res.transform(Utf8Decoder()).join();
+  var text = res.body;
   if (res.statusCode >= 400) {
     throw Exception(text);
   }

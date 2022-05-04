@@ -1,3 +1,4 @@
+import 'package:dart_data_client/dart_data_client.dart';
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart';
 import 'dart:math';
@@ -23,11 +24,21 @@ class _MyHomePageState extends State<_MyHomePage> {
   double start = 0.0;
   double scale = 1.0;
   double a = 0;
-
+  DataBuffer? dataBuffer;
   int numpts = 100;
+  List<double> dataPoints = List.generate(100, (_) => 0.0);
+
+  _MyHomePageState() {
+    getDatasetInfo("sample").then((info) {
+      dataBuffer =
+          DataBuffer("sample", info.channels[0], () => setState(() {}));
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    dataBuffer?.getData(dataPoints, start, scale);
     return Scaffold(
       appBar: AppBar(title: const Text('Graphing Page')),
       body: SingleChildScrollView(
@@ -41,12 +52,10 @@ class _MyHomePageState extends State<_MyHomePage> {
                 [
                   Series(
                     id: "primary",
-                    data: List.generate(
-                            numpts, (i) => ((i / numpts - 0.5) * scale + start))
-                        .map((x) => _Graph(x, cos(x) * a))
-                        .toList(),
-                    domainFn: (x, _) => x.xval,
-                    measureFn: (x, _) => x.yval,
+                    data: dataPoints,
+                    domainFn: (x, i) =>
+                        i == null ? 0 : (i / numpts) * scale + start,
+                    measureFn: (x, _) => x,
                   )
                 ],
                 animate: false,

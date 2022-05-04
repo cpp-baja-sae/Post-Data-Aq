@@ -7,3 +7,5 @@ export './src/test.dart'
         ReadSamplesParams,
         getSamples,
         getFilteredSamples;
+
+export './src/dataBuffer.dart' show DataBuffer;
