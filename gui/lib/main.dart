@@ -31,11 +31,11 @@ class GraphPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.clipRect(Rect.fromLTRB(0, 0, size.width, size.height));
     var p = Paint();
-    p.color = Color(0xFF00FF00);
+    p.color = Color(0xFF88BBFF);
     p.strokeWidth = 5.0;
     double valToY(val) => (1.0 - val) * size.height;
     Offset previous = Offset(0, valToY(dataPoints[0]));
-    double xInterval = size.width / 100;
+    double xInterval = size.width / 100 * scaleOffset;
     for (var point in dataPoints) {
       Offset next = Offset(previous.dx + xInterval, valToY(point));
       canvas.drawLine(previous, next, p);
