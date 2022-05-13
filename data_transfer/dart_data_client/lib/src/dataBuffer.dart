@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dart_data_client/dart_data_client.dart';
 
 const int DATA_BUFFER_SIZE = 1024;
@@ -18,6 +20,7 @@ class DataBuffer {
   Function dataModifiedCallback;
   List<LodBuffer> buffers =
       List.generate(NUM_LODS, (rateModifier) => LodBuffer(rateModifier));
+  bool dataTransferInProgress = false;
 
   DataBuffer(this.datasetName, this.channel, this.dataModifiedCallback) {
     for (int i = 0; i < NUM_LODS; i++) {
@@ -26,6 +29,11 @@ class DataBuffer {
   }
 
   void getDataFromServer(int firstSample, int rateModifier) {
+    if (dataTransferInProgress) {
+      print("Cannot retrieve data :(");
+      return;
+    }
+    dataTransferInProgress = true;
     if (firstSample < 0) {
       firstSample = 0;
     }
@@ -39,15 +47,13 @@ class DataBuffer {
       buf.firstSample = firstSample;
       buf.lastSample = firstSample + DATA_BUFFER_SIZE;
       buf.data = data;
+      print("Retrieved data for " + rateModifier.toString());
+      dataTransferInProgress = false;
       dataModifiedCallback();
+    }).catchError((_err) {
+      print("Error!");
+      dataTransferInProgress = false;
     });
-  }
-
-  double getZoomOffset(double zoom) {
-    while (zoom < 1.0) {
-      zoom *= 2.0;
-    }
-    return zoom;
   }
 
   // Zoom is how many points in [into] per sample point.
@@ -65,9 +71,8 @@ class DataBuffer {
     var firstSample = start.floor();
     var lastSample = firstSample + len;
     var buf = buffers[rateModifier];
-    if ((buf.firstSample + MOVE_FRAME_CUTOFF > firstSample ||
-            buf.lastSample - MOVE_FRAME_CUTOFF < lastSample) &&
-        firstSample > MOVE_FRAME_CUTOFF) {
+    if ((buf.firstSample > max(firstSample - MOVE_FRAME_CUTOFF, 0) ||
+        buf.lastSample - MOVE_FRAME_CUTOFF < lastSample)) {
       getDataFromServer(
           firstSample - (DATA_BUFFER_SIZE / 2).floor(), rateModifier);
       into.fillRange(0, len, 0.0);
@@ -84,4 +89,11 @@ class DataBuffer {
       return true;
     }
   }
+}
+
+double getZoomOffset(double zoom) {
+  while (zoom < 1.0) {
+    zoom *= 2.0;
+  }
+  return zoom;
 }

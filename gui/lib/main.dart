@@ -66,7 +66,7 @@ class _MyHomePageState extends State<_MyHomePage> {
   @override
   Widget build(BuildContext context) {
     dataBuffer?.getData(dataPoints, start, 1.0 / scale);
-    var zoomOffset = dataBuffer?.getZoomOffset(1.0 / scale) ?? 1.0;
+    var zoomOffset = getZoomOffset(1.0 / scale);
     return Scaffold(
       appBar: AppBar(title: const Text('Graphing Page')),
       body: SingleChildScrollView(

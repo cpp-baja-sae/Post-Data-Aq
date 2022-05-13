@@ -8,4 +8,4 @@ export './src/test.dart'
         getSamples,
         getFilteredSamples;
 
-export './src/dataBuffer.dart' show DataBuffer;
+export './src/dataBuffer.dart' show DataBuffer, getZoomOffset;
