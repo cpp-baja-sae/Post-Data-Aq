@@ -84,7 +84,7 @@ fn read_from_stream(file: File, start: u64, end: u64) -> Vec<f32> {
 }
 
 fn setup_reader(mut file: File, start: u64, end: u64) -> (BufReader<File>, usize) {
-    file.seek(SeekFrom::Start(start)).unwrap();
+    file.seek(SeekFrom::Start(start * 4)).unwrap();
     let reader = BufReader::new(file);
     let length = (end - start) as usize;
     (reader, length)

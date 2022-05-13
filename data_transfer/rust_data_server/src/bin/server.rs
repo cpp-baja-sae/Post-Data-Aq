@@ -56,6 +56,12 @@ fn read_samples(
     params: Json<ReadSamplesParams>,
 ) -> Result<Json<Vec<f32>>, status::NotFound<String>> {
     let result = read::read_samples(name, params.0);
+    if let Ok(data) = &result {
+        println!(
+            "{} {} {} {} {}",
+            data[0], data[1], data[2], data[3], data[4]
+        );
+    }
     Ok(Json(result.map_err(|e| status::NotFound(e))?))
 }
 
