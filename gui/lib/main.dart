@@ -95,7 +95,7 @@ class _MyHomePageState extends State<_MyHomePage> {
             // ),
             onPanUpdate: (DragUpdateDetails details) {
               setState(() {
-                start -= scale * details.delta.dx;
+                start -= scale * (details.delta.dx + 0.5 * details.delta.dy);
                 if (start < 0.0) start = 0.0;
                 scale *= pow(1.01, details.delta.dy);
               });
